@@ -10,7 +10,9 @@ The project is currently an early backend-first prototype. It exposes a FastAPI 
 - Task and not-to-do capture
 - Task completion
 - Thought capture with optional tags
+- Activity/life log capture for things that happened outside the task list
 - Money record capture for income and expenses
+- Simple browser UI for quick local testing
 - Dockerized backend service
 
 ## Planned Capabilities
@@ -80,10 +82,22 @@ The API is exposed on:
 http://127.0.0.1:8000
 ```
 
+For another device on the same trusted network, use the host machine's IP address:
+
+```text
+http://<host-ip>:8000
+```
+
 FastAPI interactive docs are available at:
 
 ```text
 http://127.0.0.1:8000/docs
+```
+
+A simple browser UI is available at:
+
+```text
+http://127.0.0.1:8000/app/
 ```
 
 ## API Overview
@@ -95,6 +109,8 @@ http://127.0.0.1:8000/docs
 - `POST /tasks/{task_id}/complete` - complete a task
 - `GET /thoughts` - list thoughts
 - `POST /thoughts` - create a thought
+- `GET /activity-logs` - list activity/life logs
+- `POST /activity-logs` - create an activity/life log
 - `GET /money` - list money records
 - `POST /money` - create a money record
 

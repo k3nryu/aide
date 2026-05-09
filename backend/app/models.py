@@ -27,6 +27,17 @@ class ThoughtDB(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
 
 
+class ActivityLogDB(Base):
+    __tablename__ = "activity_logs"
+
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String(255), nullable=False)
+    category = Column(String(100))
+    note = Column(Text)
+    occurred_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+
 class MoneyRecordDB(Base):
     __tablename__ = "money_records"
 

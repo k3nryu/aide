@@ -32,6 +32,7 @@ Key files:
 - `backend/app/models.py` defines ORM models.
 - `backend/app/schemas.py` defines Pydantic request and response schemas.
 - `backend/app/routers/` contains route handlers by domain.
+- `backend/app/static/` contains a simple browser UI for local testing.
 
 ### Database
 
@@ -54,7 +55,7 @@ The compose service:
 - builds `./backend`
 - runs Uvicorn with reload enabled
 - mounts `./backend/app` into the container
-- exposes the backend on `127.0.0.1:8000`
+- exposes the backend on port `8000`
 - loads environment variables from `.env`
 
 ## Data Model
@@ -85,6 +86,18 @@ Important fields:
 - `tag`
 - `created_at`
 
+### `activity_logs`
+
+Stores things the user actually did, including events that were not planned tasks.
+
+Important fields:
+
+- `title`
+- `category`
+- `note`
+- `occurred_at`
+- `created_at`
+
 ### `money_records`
 
 Stores lightweight finance entries.
@@ -112,6 +125,8 @@ Current routes:
 - `POST /tasks/{task_id}/complete`
 - `GET /thoughts`
 - `POST /thoughts`
+- `GET /activity-logs`
+- `POST /activity-logs`
 - `GET /money`
 - `POST /money`
 

@@ -1,0 +1,467 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Aide</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f6f7f3;
+        --panel: #ffffff;
+        --ink: #1d2522;
+        --muted: #6c756f;
+        --line: #dce2dc;
+        --accent: #1f7a67;
+        --accent-strong: #15584b;
+        --warn: #a24f24;
+        --soft: #eef4f1;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        line-height: 1.4;
+      }
+
+      main {
+        width: min(920px, 100%);
+        margin: 0 auto;
+        padding: 18px 14px 48px;
+      }
+
+      header {
+        display: flex;
+        align-items: end;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 10px 0 18px;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: 28px;
+        font-weight: 760;
+        letter-spacing: 0;
+      }
+
+      .date {
+        color: var(--muted);
+        font-size: 14px;
+        white-space: nowrap;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 14px;
+      }
+
+      section {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 14px;
+      }
+
+      h2 {
+        margin: 0 0 12px;
+        font-size: 17px;
+        letter-spacing: 0;
+      }
+
+      form {
+        display: grid;
+        gap: 10px;
+      }
+
+      label {
+        display: grid;
+        gap: 6px;
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      input,
+      textarea,
+      select {
+        width: 100%;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 11px 12px;
+        color: var(--ink);
+        background: #fff;
+        font: inherit;
+      }
+
+      textarea {
+        min-height: 76px;
+        resize: vertical;
+      }
+
+      button {
+        border: 0;
+        border-radius: 8px;
+        padding: 12px 14px;
+        color: #fff;
+        background: var(--accent);
+        font: inherit;
+        font-weight: 700;
+        cursor: pointer;
+      }
+
+      button:active {
+        background: var(--accent-strong);
+      }
+
+      .row {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 10px;
+      }
+
+      .status {
+        min-height: 20px;
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .status.error {
+        color: var(--warn);
+      }
+
+      .items {
+        display: grid;
+        gap: 8px;
+      }
+
+      .item {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 10px;
+        background: #fbfcfa;
+      }
+
+      .item-title {
+        font-weight: 700;
+        overflow-wrap: anywhere;
+      }
+
+      .meta {
+        margin-top: 4px;
+        color: var(--muted);
+        font-size: 13px;
+        overflow-wrap: anywhere;
+      }
+
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        min-height: 24px;
+        border-radius: 999px;
+        padding: 2px 9px;
+        background: var(--soft);
+        color: var(--accent-strong);
+        font-size: 12px;
+        font-weight: 700;
+      }
+
+      .empty {
+        color: var(--muted);
+        font-size: 14px;
+      }
+
+      @media (min-width: 760px) {
+        main {
+          padding-top: 28px;
+        }
+
+        .grid {
+          grid-template-columns: 1fr 1fr;
+          align-items: start;
+        }
+
+        .wide {
+          grid-column: 1 / -1;
+        }
+
+        .row {
+          grid-template-columns: 1fr 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>Aide</h1>
+        <div class="date" id="today"></div>
+      </header>
+
+      <div class="grid">
+        <section>
+          <h2>行为记录</h2>
+          <form id="activity-form">
+            <label>
+              做了什么
+              <input id="activity-title" name="title" maxlength="255" required placeholder="例：21:30 去了一趟便利店" />
+            </label>
+            <div class="row">
+              <label>
+                分类
+                <select id="activity-category" name="category">
+                  <option value="">不分类</option>
+                  <option value="health">健康</option>
+                  <option value="movement">移动</option>
+                  <option value="food">饮食</option>
+                  <option value="sleep">睡眠</option>
+                  <option value="exercise">运动</option>
+                  <option value="habit">习惯</option>
+                </select>
+              </label>
+              <label>
+                时间
+                <input id="activity-time" name="occurred_at" type="datetime-local" />
+              </label>
+            </div>
+            <label>
+              备注
+              <textarea id="activity-note" name="note" placeholder="可选"></textarea>
+            </label>
+            <button type="submit">记录</button>
+            <div class="status" id="activity-status"></div>
+          </form>
+        </section>
+
+        <section>
+          <h2>任务</h2>
+          <form id="task-form">
+            <label>
+              任务
+              <input id="task-title" name="title" maxlength="255" required placeholder="例：今天学习 20 个单词" />
+            </label>
+            <div class="row">
+              <label>
+                类型
+                <select id="task-type" name="type">
+                  <option value="todo">todo</option>
+                  <option value="not_todo">not-to-do</option>
+                </select>
+              </label>
+              <label>
+                优先级
+                <select id="task-priority" name="priority">
+                  <option value="medium">medium</option>
+                  <option value="high">high</option>
+                  <option value="low">low</option>
+                </select>
+              </label>
+            </div>
+            <label>
+              截止日期
+              <input id="task-due-date" name="due_date" type="date" />
+            </label>
+            <button type="submit">添加</button>
+            <div class="status" id="task-status"></div>
+          </form>
+        </section>
+
+        <section class="wide">
+          <h2>今日简报</h2>
+          <div class="items" id="briefing"></div>
+        </section>
+
+        <section>
+          <h2>最近行为</h2>
+          <div class="items" id="activity-list"></div>
+        </section>
+
+        <section>
+          <h2>任务列表</h2>
+          <div class="items" id="task-list"></div>
+        </section>
+      </div>
+    </main>
+
+    <script>
+      const today = document.querySelector("#today");
+      const activityForm = document.querySelector("#activity-form");
+      const activityStatus = document.querySelector("#activity-status");
+      const activityList = document.querySelector("#activity-list");
+      const taskForm = document.querySelector("#task-form");
+      const taskStatus = document.querySelector("#task-status");
+      const taskList = document.querySelector("#task-list");
+      const briefing = document.querySelector("#briefing");
+
+      today.textContent = new Intl.DateTimeFormat("zh-CN", {
+        dateStyle: "medium",
+        weekday: "short",
+      }).format(new Date());
+
+      function localDateTimeValue(value) {
+        if (!value) return null;
+        return new Date(value).toISOString();
+      }
+
+      function formatDateTime(value) {
+        if (!value) return "";
+        return new Intl.DateTimeFormat("zh-CN", {
+          dateStyle: "short",
+          timeStyle: "short",
+        }).format(new Date(value));
+      }
+
+      function setStatus(element, message, isError = false) {
+        element.textContent = message;
+        element.classList.toggle("error", isError);
+      }
+
+      async function api(path, options = {}) {
+        const response = await fetch(path, {
+          headers: { "Content-Type": "application/json" },
+          ...options,
+        });
+        if (!response.ok) {
+          throw new Error(await response.text());
+        }
+        return response.json();
+      }
+
+      function renderActivity(items) {
+        activityList.innerHTML = "";
+        if (!items.length) {
+          activityList.innerHTML = '<div class="empty">还没有记录</div>';
+          return;
+        }
+        for (const item of items.slice(0, 12)) {
+          const node = document.createElement("div");
+          node.className = "item";
+          node.innerHTML = `
+            <div class="item-title">${escapeHtml(item.title)}</div>
+            <div class="meta">
+              ${item.category ? `<span class="pill">${escapeHtml(item.category)}</span> ` : ""}
+              ${formatDateTime(item.occurred_at)}
+            </div>
+            ${item.note ? `<div class="meta">${escapeHtml(item.note)}</div>` : ""}
+          `;
+          activityList.appendChild(node);
+        }
+      }
+
+      function renderTasks(items) {
+        taskList.innerHTML = "";
+        if (!items.length) {
+          taskList.innerHTML = '<div class="empty">还没有任务</div>';
+          return;
+        }
+        for (const item of items.slice(0, 12)) {
+          const node = document.createElement("div");
+          node.className = "item";
+          node.innerHTML = `
+            <div class="item-title">${escapeHtml(item.title)}</div>
+            <div class="meta">
+              <span class="pill">${escapeHtml(item.type)}</span>
+              <span class="pill">${escapeHtml(item.priority)}</span>
+              ${item.due_date ? escapeHtml(item.due_date) : "无截止日期"}
+              ${item.done ? " · done" : ""}
+            </div>
+          `;
+          taskList.appendChild(node);
+        }
+      }
+
+      function renderBriefing(data) {
+        const tasks = data.tasks || [];
+        const notTodos = data.not_todos || [];
+        briefing.innerHTML = `
+          <div class="item">
+            <div class="item-title">${escapeHtml(data.message || "Today's briefing from Aide.")}</div>
+            <div class="meta">${escapeHtml(data.date || "")}</div>
+          </div>
+        `;
+        for (const item of tasks.slice(0, 5)) {
+          const node = document.createElement("div");
+          node.className = "item";
+          node.innerHTML = `<div class="item-title">${escapeHtml(item.title)}</div><div class="meta">task</div>`;
+          briefing.appendChild(node);
+        }
+        for (const item of notTodos.slice(0, 5)) {
+          const node = document.createElement("div");
+          node.className = "item";
+          node.innerHTML = `<div class="item-title">${escapeHtml(item.title)}</div><div class="meta">not-to-do</div>`;
+          briefing.appendChild(node);
+        }
+      }
+
+      function escapeHtml(value) {
+        return String(value)
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;")
+          .replaceAll('"', "&quot;")
+          .replaceAll("'", "&#039;");
+      }
+
+      async function refresh() {
+        const [activities, tasks, daily] = await Promise.all([
+          api("/activity-logs"),
+          api("/tasks"),
+          api("/daily/briefing"),
+        ]);
+        renderActivity(activities);
+        renderTasks(tasks);
+        renderBriefing(daily);
+      }
+
+      activityForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        setStatus(activityStatus, "保存中...");
+        const payload = {
+          title: document.querySelector("#activity-title").value.trim(),
+          category: document.querySelector("#activity-category").value || null,
+          note: document.querySelector("#activity-note").value.trim() || null,
+          occurred_at: localDateTimeValue(document.querySelector("#activity-time").value),
+        };
+        try {
+          await api("/activity-logs", { method: "POST", body: JSON.stringify(payload) });
+          activityForm.reset();
+          setStatus(activityStatus, "已记录");
+          await refresh();
+        } catch (error) {
+          setStatus(activityStatus, "保存失败", true);
+        }
+      });
+
+      taskForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        setStatus(taskStatus, "保存中...");
+        const payload = {
+          title: document.querySelector("#task-title").value.trim(),
+          type: document.querySelector("#task-type").value,
+          priority: document.querySelector("#task-priority").value,
+          due_date: document.querySelector("#task-due-date").value || null,
+        };
+        try {
+          await api("/tasks", { method: "POST", body: JSON.stringify(payload) });
+          taskForm.reset();
+          setStatus(taskStatus, "已添加");
+          await refresh();
+        } catch (error) {
+          setStatus(taskStatus, "保存失败", true);
+        }
+      });
+
+      refresh().catch(() => {
+        activityList.innerHTML = '<div class="empty">加载失败</div>';
+        taskList.innerHTML = '<div class="empty">加载失败</div>';
+        briefing.innerHTML = '<div class="empty">加载失败</div>';
+      });
+    </script>
+  </body>
+</html>

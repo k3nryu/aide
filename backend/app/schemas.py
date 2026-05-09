@@ -1,7 +1,7 @@
 from datetime import date, datetime
 from typing import Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class TaskCreate(BaseModel):
@@ -28,6 +28,25 @@ class ThoughtCreate(BaseModel):
 
 class ThoughtOut(ThoughtCreate):
     id: int
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class ActivityLogCreate(BaseModel):
+    title: str = Field(..., min_length=1, max_length=255)
+    category: Optional[str] = Field(default=None, max_length=100)
+    note: Optional[str] = None
+    occurred_at: Optional[datetime] = None
+
+
+class ActivityLogOut(BaseModel):
+    id: int
+    title: str
+    category: Optional[str] = None
+    note: Optional[str] = None
+    occurred_at: datetime
     created_at: datetime
 
     class Config:

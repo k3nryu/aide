@@ -10,6 +10,7 @@ Goal: make Aide useful for basic daily capture and review.
 - Support task creation, listing, and completion
 - Support not-to-dos as first-class task records
 - Support thought capture and review
+- Support activity/life log capture for things that happened outside the task list
 - Support daily briefing
 - Support lightweight money records
 - Add basic README and project docs
@@ -26,6 +27,7 @@ Goal: make the backend easier to maintain before adding larger features.
 - Add stricter validation for task, thought, and money inputs
 - Add update/delete endpoints where useful
 - Add pagination or date filtering for growing lists
+- Add filters for activity logs by date and category
 - Decide whether authentication is needed for the local deployment model
 
 ## Phase 3: Frontend
