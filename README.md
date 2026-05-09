@@ -103,4 +103,5 @@ http://127.0.0.1:8000/docs
 - [Vision](docs/vision.md)
 - [Architecture](docs/architecture.md)
 - [Roadmap](docs/roadmap.md)
+- [Product Ideas / 产品想法](docs/product-ideas.md)
 - [Agent Instructions](AGENTS.md)
