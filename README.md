@@ -30,7 +30,11 @@ The project is currently an early backend-first prototype. It exposes a FastAPI 
 │   ├── Dockerfile
 │   ├── requirements.txt
 │   └── app/
-│       └── main.py
+│       ├── main.py
+│       ├── database.py
+│       ├── models.py
+│       ├── schemas.py
+│       └── routers/
 ├── docs/
 │   ├── architecture.md
 │   ├── roadmap.md
@@ -42,16 +46,13 @@ The project is currently an early backend-first prototype. It exposes a FastAPI 
 
 ## Backend
 
-The backend is implemented in `backend/app/main.py`.
+The backend is implemented under `backend/app`.
 
-It currently contains:
-
-- FastAPI application setup
-- SQLAlchemy engine and session management
-- ORM models
-- Pydantic schemas
-- Route handlers
-- Automatic table creation at startup
+- `main.py` creates the FastAPI app, creates tables, and includes routers
+- `database.py` configures SQLAlchemy and database sessions
+- `models.py` defines ORM models
+- `schemas.py` defines Pydantic schemas
+- `routers/` contains API routes by domain
 
 ## Configuration
 

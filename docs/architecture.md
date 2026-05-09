@@ -2,7 +2,7 @@
 
 Aide is currently a backend-first FastAPI application with a PostgreSQL-compatible relational database.
 
-The repository is intentionally small. Most implementation details live in `backend/app/main.py` while the prototype is still early.
+The repository is intentionally small. The backend is split by responsibility into app setup, database configuration, ORM models, Pydantic schemas, and routers.
 
 ## System Overview
 
@@ -25,16 +25,13 @@ Docker Compose runs the backend locally and injects configuration from `.env`.
 
 ### Backend
 
-Location: `backend/app/main.py`
+Key files:
 
-Responsibilities:
-
-- Create the FastAPI app
-- Configure the SQLAlchemy engine from `DATABASE_URL`
-- Provide database sessions through FastAPI dependencies
-- Define ORM models
-- Define Pydantic schemas
-- Expose HTTP routes
+- `backend/app/main.py` creates the FastAPI app, creates tables, and includes routers.
+- `backend/app/database.py` configures the SQLAlchemy engine, session factory, base model, and database dependency.
+- `backend/app/models.py` defines ORM models.
+- `backend/app/schemas.py` defines Pydantic request and response schemas.
+- `backend/app/routers/` contains route handlers by domain.
 
 ### Database
 
@@ -118,9 +115,7 @@ Current routes:
 - `GET /money`
 - `POST /money`
 
-## Future Architecture
-
-As the project grows, the backend should likely split into:
+## Backend Layout
 
 ```text
 backend/app/
@@ -129,12 +124,16 @@ backend/app/
 ├── models.py
 ├── schemas.py
 ├── routers/
+│   ├── __init__.py
 │   ├── daily.py
+│   ├── money.py
 │   ├── tasks.py
-│   ├── thoughts.py
-│   └── money.py
-└── services/
+│   └── thoughts.py
 ```
+
+Future business logic that grows beyond simple route handlers should move into `services/`.
+
+## Future Components
 
 Planned future components:
 
