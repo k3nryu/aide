@@ -14,6 +14,16 @@ class TaskCreate(BaseModel):
     due_date: Optional[date] = None
 
 
+class TaskUpdate(BaseModel):
+    title: Optional[str] = None
+    description: Optional[str] = None
+    type: Optional[str] = None
+    priority: Optional[str] = None
+    importance: Optional[str] = None
+    urgency: Optional[str] = None
+    due_date: Optional[date] = None
+
+
 class TaskOut(TaskCreate):
     id: int
     done: bool

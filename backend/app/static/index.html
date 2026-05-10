@@ -955,9 +955,51 @@
         return "medium";
       }
 
+      function urgencyWithDueDate(urgency, dueDateValue, done = false) {
+        if (urgency === "high") return "high";
+        if (!dueDateValue || done) return urgency || "medium";
+        const todayDate = new Date();
+        todayDate.setHours(0, 0, 0, 0);
+        const dueDate = new Date(`${dueDateValue}T00:00:00`);
+        const daysLeft = Math.ceil((dueDate - todayDate) / 86400000);
+        return daysLeft <= 3 ? "high" : urgency || "medium";
+      }
+
+      function effectiveUrgency(item) {
+        return urgencyWithDueDate(item.urgency || "medium", item.due_date, item.done);
+      }
+
+      function effectivePriority(item) {
+        return evaluateTaskPriority(item.importance || "medium", effectiveUrgency(item));
+      }
+
+      function priorityRank(value) {
+        if (value === "high") return 3;
+        if (value === "medium") return 2;
+        return 1;
+      }
+
+      function taskSortValue(item) {
+        return priorityRank(effectivePriority(item)) * 100 + priorityRank(item.importance || "medium") * 10 + priorityRank(effectiveUrgency(item));
+      }
+
+      function sortedTasks(items) {
+        return items.slice().sort((a, b) => {
+          const priorityDifference = taskSortValue(b) - taskSortValue(a);
+          if (priorityDifference !== 0) return priorityDifference;
+          if (a.due_date && b.due_date) return a.due_date.localeCompare(b.due_date);
+          if (a.due_date) return -1;
+          if (b.due_date) return 1;
+          return new Date(b.created_at) - new Date(a.created_at);
+        });
+      }
+
       function updateTaskPriorityPreview() {
         const importance = document.querySelector("#task-importance").value;
-        const urgency = document.querySelector("#task-urgency").value;
+        const urgency = urgencyWithDueDate(
+          document.querySelector("#task-urgency").value,
+          document.querySelector("#task-due-date").value || null,
+        );
         const priority = evaluateTaskPriority(importance, urgency);
         document.querySelector("#task-priority-preview").textContent =
           `Aide 评估优先级：${labelLevel(priority)}。判断依据：重要度 ${labelLevel(importance)}，紧急度 ${labelLevel(urgency)}。`;
@@ -997,29 +1039,48 @@
 
       function renderTasks(items) {
         taskList.innerHTML = "";
-        const todos = items.filter((item) => item.type !== "not_todo");
+        const todos = sortedTasks(items.filter((item) => item.type !== "not_todo"));
         if (!todos.length) {
           taskList.innerHTML = '<div class="empty">还没有任务</div>';
           renderNotTodos(items);
           return;
         }
         for (const item of todos.slice(0, 12)) {
-          const node = document.createElement("div");
+          const node = document.createElement("details");
           node.className = "item";
+          const urgency = effectiveUrgency(item);
+          const priority = effectivePriority(item);
           node.innerHTML = `
-            <div class="item-title">${escapeHtml(item.title)}</div>
-            ${item.description ? `<div class="meta">${escapeHtml(item.description)}</div>` : ""}
-            <div class="meta">
-              <span class="pill">${escapeHtml(item.priority)}</span>
-              <span class="pill">重要度：${escapeHtml(labelLevel(item.importance))}</span>
-              <span class="pill">紧急度：${escapeHtml(labelLevel(item.urgency))}</span>
-              ${item.due_date ? escapeHtml(item.due_date) : "无截止日期"}
-              ${item.done ? " · done" : ""}
+            <summary class="summary-row">
+              <span class="item-title">${escapeHtml(item.title)}</span>
+              <span class="pill">${escapeHtml(labelLevel(priority))}</span>
+            </summary>
+            <div class="detail-body">
+              ${item.description ? `<div class="meta">${escapeHtml(item.description)}</div>` : ""}
+              <div class="meta">
+                <span class="pill">重要度：${escapeHtml(labelLevel(item.importance))}</span>
+                <span class="pill">紧急度：${escapeHtml(labelLevel(urgency))}</span>
+                ${urgency !== item.urgency ? '<span class="pill">截止日临近</span>' : ""}
+                ${item.due_date ? escapeHtml(item.due_date) : "无截止日期"}
+                ${item.done ? " · done" : ""}
+              </div>
+              <form class="task-edit-form" data-task-id="${item.id}" onsubmit="return false">
+                <label>任务<input name="title" value="${escapeAttribute(item.title)}" required /></label>
+                <label>描述<textarea name="description">${escapeHtml(item.description || "")}</textarea></label>
+                <div class="row">
+                  <label>重要度${selectHtml("importance", item.importance || "medium", [["medium", "普通"], ["high", "重要"], ["low", "不重要"]])}</label>
+                  <label>紧急度${selectHtml("urgency", item.urgency || "medium", [["medium", "普通"], ["high", "紧急"], ["low", "不紧急"]])}</label>
+                </div>
+                <label>截止日期<input name="due_date" type="date" value="${escapeAttribute(item.due_date || "")}" /></label>
+                <button type="submit">保存修改</button>
+                <div class="status"></div>
+              </form>
+              ${item.done ? "" : `<button class="secondary complete-task" data-task-id="${item.id}" type="button">完成</button>`}
             </div>
-            ${item.done ? "" : `<button class="secondary complete-task" data-task-id="${item.id}" type="button">完成</button>`}
           `;
           taskList.appendChild(node);
         }
+        bindTaskEditForms();
         const completeButtons = document.querySelectorAll(".complete-task");
         for (let index = 0; index < completeButtons.length; index += 1) {
           const button = completeButtons[index];
@@ -1033,7 +1094,7 @@
       }
 
       function renderNotTodos(items) {
-        const notTodos = items.filter((item) => item.type === "not_todo");
+        const notTodos = sortedTasks(items.filter((item) => item.type === "not_todo"));
         notTodoList.innerHTML = "";
         if (!notTodos.length) {
           notTodoList.innerHTML = '<div class="empty">还没有 not-to-do</div>';
@@ -1170,6 +1231,45 @@
         return `<div class="report-line"><span class="report-key">${escapeHtml(key)}</span><span>${escapeHtml(value || "未指定")}</span></div>`;
       }
 
+      function selectHtml(name, selectedValue, options) {
+        return `<select name="${escapeAttribute(name)}">${options
+          .map(([value, label]) => `<option value="${escapeAttribute(value)}" ${value === selectedValue ? "selected" : ""}>${escapeHtml(label)}</option>`)
+          .join("")}</select>`;
+      }
+
+      function bindTaskEditForms() {
+        const forms = document.querySelectorAll(".task-edit-form");
+        for (let index = 0; index < forms.length; index += 1) {
+          const form = forms[index];
+          form.addEventListener("submit", async (event) => {
+            event.preventDefault();
+            const status = form.querySelector(".status");
+            setStatus(status, "保存中...");
+            const importance = form.elements.importance.value;
+            const dueDate = form.elements.due_date.value || null;
+            const urgency = urgencyWithDueDate(form.elements.urgency.value, dueDate);
+            const payload = {
+              title: form.elements.title.value.trim(),
+              description: form.elements.description.value.trim() || null,
+              importance,
+              urgency,
+              priority: evaluateTaskPriority(importance, urgency),
+              due_date: dueDate,
+            };
+            try {
+              await api(`/tasks/${form.getAttribute("data-task-id")}`, {
+                method: "PATCH",
+                body: JSON.stringify(payload),
+              });
+              setStatus(status, "已保存");
+              await refresh();
+            } catch (error) {
+              setStatus(status, "保存失败", true);
+            }
+          });
+        }
+      }
+
       function bindCurrencyButtons() {
         const buttons = document.querySelectorAll("[data-display-currency]");
         for (let index = 0; index < buttons.length; index += 1) {
@@ -1186,6 +1286,7 @@
       function bindTaskPriorityPreview() {
         document.querySelector("#task-importance").addEventListener("change", updateTaskPriorityPreview);
         document.querySelector("#task-urgency").addEventListener("change", updateTaskPriorityPreview);
+        document.querySelector("#task-due-date").addEventListener("change", updateTaskPriorityPreview);
         updateTaskPriorityPreview();
       }
 
@@ -1196,6 +1297,10 @@
           .replace(/>/g, "&gt;")
           .replace(/"/g, "&quot;")
           .replace(/'/g, "&#039;");
+      }
+
+      function escapeAttribute(value) {
+        return escapeHtml(value).replace(/`/g, "&#096;");
       }
 
       async function refresh() {
@@ -1238,7 +1343,8 @@
         setStatus(taskStatus, "保存中...");
         const descriptionInput = document.querySelector("#task-description");
         const importance = document.querySelector("#task-importance").value;
-        const urgency = document.querySelector("#task-urgency").value;
+        const dueDate = document.querySelector("#task-due-date").value || null;
+        const urgency = urgencyWithDueDate(document.querySelector("#task-urgency").value, dueDate);
         const payload = {
           title: document.querySelector("#task-title").value.trim(),
           description: descriptionInput ? descriptionInput.value.trim() || null : null,
@@ -1246,7 +1352,7 @@
           priority: evaluateTaskPriority(importance, urgency),
           importance,
           urgency,
-          due_date: document.querySelector("#task-due-date").value || null,
+          due_date: dueDate,
         };
         try {
           await api("/tasks", { method: "POST", body: JSON.stringify(payload) });
