@@ -13,18 +13,20 @@ router = APIRouter()
 
 
 def _effective_task_values(values):
-    recurrence = values.get("recurrence_natural") or values.get("recurrence_cron")
+    recurrence = (
+        values.get("todo_kind") == "recurring"
+        or values.get("recurrence_frequency")
+        or values.get("recurrence_natural")
+    )
     importance = values.get("importance") or "medium"
     urgency = values.get("urgency") or "medium"
     due_date = values.get("due_date")
-    prepare_days = values.get("recurrence_prepare_days")
 
     if recurrence and importance == "medium":
         importance = "high"
 
     if due_date and urgency != "high":
-        notice_days = prepare_days if prepare_days is not None else 3
-        if due_date <= date.today() + timedelta(days=notice_days):
+        if due_date <= date.today() + timedelta(days=3):
             urgency = "high"
 
     if importance == "high" and urgency != "high":
@@ -39,6 +41,10 @@ def _effective_task_values(values):
         priority = "medium"
 
     effective_values = values.copy()
+    if effective_values.get("type") == "not_todo":
+        effective_values["todo_kind"] = None
+        effective_values["done"] = False
+        effective_values["completed_at"] = None
     effective_values["importance"] = importance
     effective_values["urgency"] = urgency
     effective_values["priority"] = priority
@@ -125,6 +131,13 @@ def update_task(task_id: int, task: TaskUpdate, db: Session = Depends(get_db)):
         "importance": item.importance,
         "urgency": item.urgency,
         "context": item.context,
+        "todo_kind": item.todo_kind,
+        "recurrence_frequency": item.recurrence_frequency,
+        "recurrence_calendar": item.recurrence_calendar,
+        "recurrence_month": item.recurrence_month,
+        "recurrence_day": item.recurrence_day,
+        "recurrence_weekdays": item.recurrence_weekdays,
+        "not_todo_group": item.not_todo_group,
         "recurrence_natural": item.recurrence_natural,
         "recurrence_cron": item.recurrence_cron,
         "recurrence_prepare_days": item.recurrence_prepare_days,

@@ -12,6 +12,13 @@ class TaskCreate(BaseModel):
     importance: str = "medium"
     urgency: str = "medium"
     context: str = "personal"
+    todo_kind: str = "one_time"
+    recurrence_frequency: Optional[str] = None
+    recurrence_calendar: Optional[str] = "solar"
+    recurrence_month: Optional[int] = Field(default=None, ge=1, le=12)
+    recurrence_day: Optional[int] = Field(default=None, ge=1, le=31)
+    recurrence_weekdays: Optional[str] = None
+    not_todo_group: Optional[str] = None
     recurrence_natural: Optional[str] = None
     recurrence_cron: Optional[str] = None
     recurrence_prepare_days: Optional[int] = Field(default=None, ge=0, le=365)
@@ -28,6 +35,13 @@ class TaskUpdate(BaseModel):
     importance: Optional[str] = None
     urgency: Optional[str] = None
     context: Optional[str] = None
+    todo_kind: Optional[str] = None
+    recurrence_frequency: Optional[str] = None
+    recurrence_calendar: Optional[str] = None
+    recurrence_month: Optional[int] = Field(default=None, ge=1, le=12)
+    recurrence_day: Optional[int] = Field(default=None, ge=1, le=31)
+    recurrence_weekdays: Optional[str] = None
+    not_todo_group: Optional[str] = None
     recurrence_natural: Optional[str] = None
     recurrence_cron: Optional[str] = None
     recurrence_prepare_days: Optional[int] = Field(default=None, ge=0, le=365)

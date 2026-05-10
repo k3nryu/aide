@@ -16,6 +16,13 @@ class TaskDB(Base):
     importance = Column(String(50), default="medium")
     urgency = Column(String(50), default="medium")
     context = Column(String(50), default="personal")  # personal / company
+    todo_kind = Column(String(50), default="one_time")  # one_time / recurring
+    recurrence_frequency = Column(String(50))  # daily / weekly / monthly / yearly
+    recurrence_calendar = Column(String(50), default="solar")  # solar / lunar
+    recurrence_month = Column(Integer)
+    recurrence_day = Column(Integer)
+    recurrence_weekdays = Column(String(100))
+    not_todo_group = Column(String(50))
     recurrence_natural = Column(Text)
     recurrence_cron = Column(String(120))
     recurrence_prepare_days = Column(Integer)

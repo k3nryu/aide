@@ -196,6 +196,17 @@
         gap: 8px;
       }
 
+      .checkbox-row {
+        display: flex;
+        grid-template-columns: none;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .checkbox-row input {
+        width: auto;
+      }
+
       .stats {
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -471,73 +482,69 @@
                   描述
                   <textarea id="task-description" name="description" placeholder="可选"></textarea>
                 </label>
-                <div class="row">
-                  <label>
-                    类型
-                    <select id="task-type" name="type">
-                      <option value="todo">todo</option>
-                      <option value="not_todo">not-to-do</option>
-                    </select>
-                  </label>
-                  <label>
-                    分类
-                    <select id="task-context" name="context">
-                      <option value="personal">个人</option>
-                      <option value="company">公司</option>
-                    </select>
-                  </label>
-                </div>
-                <div class="row">
-                  <label>
-                    重要度
-                    <select id="task-importance" name="importance">
-                      <option value="medium">普通</option>
-                      <option value="high">重要</option>
-                      <option value="low">不重要</option>
-                    </select>
-                  </label>
-                  <label>
-                    紧急度
-                    <select id="task-urgency" name="urgency">
-                      <option value="medium">普通</option>
-                      <option value="high">紧急</option>
-                      <option value="low">不紧急</option>
-                    </select>
-                  </label>
-                </div>
+                <label>
+                  分类
+                  <select id="task-context" name="context">
+                    <option value="personal">个人</option>
+                    <option value="company">公司</option>
+                  </select>
+                </label>
+                <label>
+                  重要度
+                  <select id="task-importance" name="importance">
+                    <option value="medium">普通</option>
+                    <option value="high">重要</option>
+                    <option value="low">不重要</option>
+                  </select>
+                </label>
                 <div class="meta" id="task-priority-preview">Aide 会根据重要度和紧急度自动评估优先级。</div>
                 <label>
                   截止日期
                   <input id="task-due-date" name="due_date" type="date" />
                 </label>
-                <label>
-                  定期任务
-                  <input id="task-recurrence-natural" name="recurrence_natural" placeholder="例：每年老婆生日提前半个月提醒" />
+                <label class="checkbox-row">
+                  <input id="task-is-recurring" type="checkbox" />
+                  这是定期任务
                 </label>
-                <div class="row">
+                <div class="detail-body" id="task-recurrence-fields" hidden>
+                  <div class="row">
+                    <label>
+                      频率
+                      <select id="task-recurrence-frequency">
+                        <option value="daily">每天</option>
+                        <option value="weekly">每周</option>
+                        <option value="monthly">每月</option>
+                        <option value="yearly">每年</option>
+                      </select>
+                    </label>
+                    <label>
+                      历法
+                      <select id="task-recurrence-calendar">
+                        <option value="solar">国历</option>
+                        <option value="lunar">农历</option>
+                      </select>
+                    </label>
+                  </div>
+                  <div class="row">
+                    <label>
+                      月
+                      <input id="task-recurrence-month" type="number" min="1" max="12" placeholder="每年时填写" />
+                    </label>
+                    <label>
+                      日
+                      <input id="task-recurrence-day" type="number" min="1" max="31" placeholder="每月/每年时填写" />
+                    </label>
+                  </div>
                   <label>
-                    高级规则
-                    <input id="task-recurrence-cron" name="recurrence_cron" placeholder="例：0 8 * * *" />
+                    星期
+                    <input id="task-recurrence-weekdays" placeholder="例：周四、周六" />
                   </label>
                   <label>
-                    提前几天变紧急
-                    <input id="task-recurrence-prepare-days" name="recurrence_prepare_days" type="number" min="0" max="365" placeholder="例：15" />
+                    自然语言
+                    <input id="task-recurrence-natural" name="recurrence_natural" placeholder="例：每年农历八月十二老婆生日" />
                   </label>
                 </div>
-                <div class="meta">例：每天学单词、每周四和周六游泳、每半年更新定期券、每年老婆生日提前半个月提醒。</div>
-                <div class="row">
-                  <label>
-                    高级输入格式
-                    <select id="task-advanced-format" name="advanced_format">
-                      <option value="markdown">Markdown</option>
-                      <option value="yaml">YAML</option>
-                    </select>
-                  </label>
-                </div>
-                <label>
-                  高级输入
-                  <textarea id="task-advanced-body" name="advanced_body" placeholder="- 用 Markdown 写准备清单&#10;或用 YAML 写 structured fields"></textarea>
-                </label>
+                <div class="meta">Aide 会根据截止日期、频率和上下文自动评估紧急程度。</div>
               </div>
             </details>
             <button type="submit">添加</button>
@@ -639,8 +646,26 @@
 
         <section>
           <details>
-            <summary class="secondary">查看 Not-to-Do</summary>
+            <summary class="secondary">查看 / 添加 Not-to-Do</summary>
             <div class="detail-body">
+              <form id="not-todo-form" onsubmit="return false">
+                <label>
+                  内容
+                  <input id="not-todo-title" maxlength="255" placeholder="例：不做违法的事情" />
+                </label>
+                <label>
+                  分组
+                  <select id="not-todo-group">
+                    <option value="law">法律</option>
+                    <option value="morality">道德</option>
+                    <option value="company">公司</option>
+                    <option value="family">家庭</option>
+                    <option value="health">健康</option>
+                  </select>
+                </label>
+                <button type="submit">添加 Not-to-Do</button>
+                <div class="status" id="not-todo-status"></div>
+              </form>
               <div class="items" id="not-todo-list"></div>
             </div>
           </details>
@@ -917,6 +942,8 @@
       const taskList = document.querySelector("#task-list");
       const taskContextFilter = document.querySelector("#task-context-filter");
       const notTodoList = document.querySelector("#not-todo-list");
+      const notTodoForm = document.querySelector("#not-todo-form");
+      const notTodoStatus = document.querySelector("#not-todo-status");
       const completedRange = document.querySelector("#completed-range");
       const completedSearch = document.querySelector("#completed-search");
       const completedTaskList = document.querySelector("#completed-task-list");
@@ -1310,6 +1337,37 @@
         return "中";
       }
 
+      function labelNotTodoGroup(value) {
+        const labels = {
+          law: "法律",
+          morality: "道德",
+          company: "公司",
+          family: "家庭",
+          health: "健康",
+        };
+        return labels[value] || "未分组";
+      }
+
+      function labelRecurrence(item) {
+        if (item.todo_kind !== "recurring") return "";
+        const frequencyLabels = {
+          daily: "每天",
+          weekly: "每周",
+          monthly: "每月",
+          yearly: "每年",
+        };
+        const calendarLabel = item.recurrence_calendar === "lunar" ? "农历" : "国历";
+        const parts = [frequencyLabels[item.recurrence_frequency] || "定期"];
+        if (item.recurrence_frequency === "weekly" && item.recurrence_weekdays) parts.push(item.recurrence_weekdays);
+        if (item.recurrence_frequency === "monthly" && item.recurrence_day) parts.push(`${item.recurrence_day}日`);
+        if (item.recurrence_frequency === "yearly") {
+          const monthDay = [item.recurrence_month ? `${item.recurrence_month}月` : "", item.recurrence_day ? `${item.recurrence_day}日` : ""].join("");
+          if (monthDay) parts.push(`${calendarLabel}${monthDay}`);
+        }
+        if (item.recurrence_natural) parts.push(item.recurrence_natural);
+        return parts.join(" · ");
+      }
+
       function labelContext(value) {
         return value === "company" ? "公司" : "个人";
       }
@@ -1322,28 +1380,27 @@
         return "medium";
       }
 
-      function urgencyWithDueDate(urgency, dueDateValue, done = false, prepareDaysValue = null) {
+      function urgencyWithDueDate(urgency, dueDateValue, done = false) {
         if (urgency === "high") return "high";
         if (!dueDateValue || done) return urgency || "medium";
         const todayDate = new Date();
         todayDate.setHours(0, 0, 0, 0);
         const dueDate = new Date(`${dueDateValue}T00:00:00`);
-        const prepareDays = Number.isFinite(Number(prepareDaysValue)) ? Number(prepareDaysValue) : 3;
         const daysLeft = Math.ceil((dueDate - todayDate) / 86400000);
-        return daysLeft <= prepareDays ? "high" : urgency || "medium";
+        return daysLeft <= 3 ? "high" : urgency || "medium";
       }
 
-      function importanceWithRecurrence(importance, recurrenceNatural, recurrenceCron) {
-        if ((recurrenceNatural || recurrenceCron) && importance === "medium") return "high";
+      function importanceWithRecurrence(importance, recurrenceNatural, recurrenceCron, todoKind = "one_time") {
+        if ((todoKind === "recurring" || recurrenceNatural || recurrenceCron) && importance === "medium") return "high";
         return importance || "medium";
       }
 
       function effectiveUrgency(item) {
-        return urgencyWithDueDate(item.urgency || "medium", item.due_date, item.done, item.recurrence_prepare_days);
+        return urgencyWithDueDate(item.urgency || "medium", item.due_date, item.done);
       }
 
       function effectivePriority(item) {
-        const importance = importanceWithRecurrence(item.importance || "medium", item.recurrence_natural, item.recurrence_cron);
+        const importance = importanceWithRecurrence(item.importance || "medium", item.recurrence_natural, item.recurrence_cron, item.todo_kind);
         return evaluateTaskPriority(importance, effectiveUrgency(item));
       }
 
@@ -1355,7 +1412,7 @@
       }
 
       function taskSortValue(item) {
-        const importance = importanceWithRecurrence(item.importance || "medium", item.recurrence_natural, item.recurrence_cron);
+        const importance = importanceWithRecurrence(item.importance || "medium", item.recurrence_natural, item.recurrence_cron, item.todo_kind);
         return priorityRank(effectivePriority(item)) * 100 + priorityRank(importance) * 10 + priorityRank(effectiveUrgency(item));
       }
 
@@ -1371,16 +1428,17 @@
       }
 
       function updateTaskPriorityPreview() {
+        const isRecurring = document.querySelector("#task-is-recurring").checked;
         const importance = importanceWithRecurrence(
           document.querySelector("#task-importance").value,
           document.querySelector("#task-recurrence-natural").value.trim(),
-          document.querySelector("#task-recurrence-cron").value.trim(),
+          null,
+          isRecurring ? "recurring" : "one_time",
         );
         const urgency = urgencyWithDueDate(
-          document.querySelector("#task-urgency").value,
+          "medium",
           document.querySelector("#task-due-date").value || null,
           false,
-          document.querySelector("#task-recurrence-prepare-days").value || null,
         );
         const priority = evaluateTaskPriority(importance, urgency);
         document.querySelector("#task-priority-preview").textContent =
@@ -1436,7 +1494,8 @@
           node.className = "item";
           const urgency = effectiveUrgency(item);
           const priority = effectivePriority(item);
-          const importance = importanceWithRecurrence(item.importance || "medium", item.recurrence_natural, item.recurrence_cron);
+          const importance = importanceWithRecurrence(item.importance || "medium", item.recurrence_natural, item.recurrence_cron, item.todo_kind);
+          const recurrenceLabel = labelRecurrence(item);
           node.innerHTML = `
             <summary class="summary-row">
               <span class="item-title">${escapeHtml(item.title)}</span>
@@ -1449,20 +1508,15 @@
                 <span class="pill">重要度：${escapeHtml(labelLevel(importance))}</span>
                 <span class="pill">紧急度：${escapeHtml(labelLevel(urgency))}</span>
                 ${urgency !== item.urgency ? '<span class="pill">截止日临近</span>' : ""}
-                ${item.recurrence_natural || item.recurrence_cron ? '<span class="pill">定期</span>' : ""}
+                ${item.todo_kind === "recurring" ? '<span class="pill">定期</span>' : '<span class="pill">非定期</span>'}
                 ${item.due_date ? escapeHtml(item.due_date) : "无截止日期"}
                 ${item.done ? " · done" : ""}
               </div>
-              ${item.recurrence_natural ? `<div class="meta">定期：${escapeHtml(item.recurrence_natural)}</div>` : ""}
-              ${item.recurrence_cron ? `<div class="meta">高级规则：${escapeHtml(item.recurrence_cron)}</div>` : ""}
-              ${item.advanced_body ? `<div class="meta">高级输入（${escapeHtml(item.advanced_format || "markdown")}）：${escapeHtml(item.advanced_body)}</div>` : ""}
+              ${recurrenceLabel ? `<div class="meta">定期：${escapeHtml(recurrenceLabel)}</div>` : ""}
               <form class="task-edit-form" data-task-id="${item.id}" onsubmit="return false">
                 <label>任务<input name="title" value="${escapeAttribute(item.title)}" required /></label>
                 <label>描述<textarea name="description">${escapeHtml(item.description || "")}</textarea></label>
-                <div class="row">
-                  <label>分类${selectHtml("context", item.context || "personal", [["personal", "个人"], ["company", "公司"]])}</label>
-                  <label>类型${selectHtml("type", item.type || "todo", [["todo", "todo"], ["not_todo", "not-to-do"]])}</label>
-                </div>
+                <label>分类${selectHtml("context", item.context || "personal", [["personal", "个人"], ["company", "公司"]])}</label>
                 <div class="row">
                   <label>重要度${selectHtml("importance", item.importance || "medium", [["medium", "普通"], ["high", "重要"], ["low", "不重要"]])}</label>
                   <label>紧急度${selectHtml("urgency", item.urgency || "medium", [["medium", "普通"], ["high", "紧急"], ["low", "不紧急"]])}</label>
@@ -1470,13 +1524,14 @@
                 <label>截止日期<input name="due_date" type="date" value="${escapeAttribute(item.due_date || "")}" /></label>
                 <label>定期任务<input name="recurrence_natural" value="${escapeAttribute(item.recurrence_natural || "")}" /></label>
                 <div class="row">
-                  <label>高级规则<input name="recurrence_cron" value="${escapeAttribute(item.recurrence_cron || "")}" /></label>
-                  <label>提前几天变紧急<input name="recurrence_prepare_days" type="number" min="0" max="365" value="${escapeAttribute(item.recurrence_prepare_days || "")}" /></label>
+                  <label>频率${selectHtml("recurrence_frequency", item.recurrence_frequency || "", [["", "非定期"], ["daily", "每天"], ["weekly", "每周"], ["monthly", "每月"], ["yearly", "每年"]])}</label>
+                  <label>历法${selectHtml("recurrence_calendar", item.recurrence_calendar || "solar", [["solar", "国历"], ["lunar", "农历"]])}</label>
                 </div>
                 <div class="row">
-                  <label>高级输入格式${selectHtml("advanced_format", item.advanced_format || "markdown", [["markdown", "Markdown"], ["yaml", "YAML"]])}</label>
+                  <label>月<input name="recurrence_month" type="number" min="1" max="12" value="${escapeAttribute(item.recurrence_month || "")}" /></label>
+                  <label>日<input name="recurrence_day" type="number" min="1" max="31" value="${escapeAttribute(item.recurrence_day || "")}" /></label>
                 </div>
-                <label>高级输入<textarea name="advanced_body">${escapeHtml(item.advanced_body || "")}</textarea></label>
+                <label>星期<input name="recurrence_weekdays" value="${escapeAttribute(item.recurrence_weekdays || "")}" /></label>
                 <button type="submit">保存修改</button>
                 <div class="status"></div>
               </form>
@@ -1506,21 +1561,33 @@
           notTodoList.innerHTML = '<div class="empty">还没有 not-to-do</div>';
           return;
         }
-        for (const item of notTodos.slice(0, 12)) {
-          const node = document.createElement("div");
-          node.className = "item";
-          node.innerHTML = `
-            <div class="item-title">${escapeHtml(item.title)}</div>
-            ${item.description ? `<div class="meta">${escapeHtml(item.description)}</div>` : ""}
-            <div class="meta">
-              <span class="pill">${escapeHtml(labelPriority(item.priority))}</span>
-              <span class="pill">重要度：${escapeHtml(labelLevel(item.importance))}</span>
-              <span class="pill">紧急度：${escapeHtml(labelLevel(item.urgency))}</span>
-              ${item.due_date ? escapeHtml(item.due_date) : "无截止日期"}
+        const groups = ["law", "morality", "company", "family", "health", ""];
+        for (const group of groups) {
+          const groupItems = notTodos.filter((item) => (item.not_todo_group || "") === group);
+          if (!groupItems.length) continue;
+          const groupNode = document.createElement("details");
+          groupNode.className = "item";
+          groupNode.open = true;
+          groupNode.innerHTML = `
+            <summary class="summary-row">
+              <span class="item-title">${escapeHtml(labelNotTodoGroup(group))}</span>
+              <span class="pill">${groupItems.length}</span>
+            </summary>
+            <div class="detail-body">
+              ${groupItems
+                .slice(0, 12)
+                .map(
+                  (item) => `
+                    <div class="item">
+                      <div class="item-title">${escapeHtml(item.title)}</div>
+                      ${item.description ? `<div class="meta">${escapeHtml(item.description)}</div>` : ""}
+                    </div>
+                  `,
+                )
+                .join("")}
             </div>
-            ${item.advanced_body ? `<div class="meta">高级输入（${escapeHtml(item.advanced_format || "markdown")}）：${escapeHtml(item.advanced_body)}</div>` : ""}
           `;
-          notTodoList.appendChild(node);
+          notTodoList.appendChild(groupNode);
         }
       }
 
@@ -1612,7 +1679,7 @@
 
       function renderStats(tasks, activities, money) {
         const openTasks = tasks.filter((item) => item.type !== "not_todo" && !item.done);
-        const notTodos = tasks.filter((item) => item.type === "not_todo" && !item.done);
+        const notTodos = tasks.filter((item) => item.type === "not_todo");
         document.querySelector("#stat-open-tasks").textContent = openTasks.length;
         document.querySelector("#stat-not-todos").textContent = notTodos.length;
         document.querySelector("#stat-activities").textContent = activities.length;
@@ -1833,26 +1900,27 @@
             const status = form.querySelector(".status");
             setStatus(status, "保存中...");
             const recurrenceNatural = form.elements.recurrence_natural.value.trim();
-            const recurrenceCron = form.elements.recurrence_cron.value.trim();
-            const prepareDays = form.elements.recurrence_prepare_days.value;
-            const advancedBody = form.elements.advanced_body.value.trim();
-            const importance = importanceWithRecurrence(form.elements.importance.value, recurrenceNatural, recurrenceCron);
+            const recurrenceFrequency = form.elements.recurrence_frequency.value || null;
+            const todoKind = recurrenceFrequency || recurrenceNatural ? "recurring" : "one_time";
+            const importance = importanceWithRecurrence(form.elements.importance.value, recurrenceNatural, null, todoKind);
             const dueDate = form.elements.due_date.value || null;
-            const urgency = urgencyWithDueDate(form.elements.urgency.value, dueDate, false, prepareDays || null);
+            const urgency = urgencyWithDueDate(form.elements.urgency.value, dueDate, false);
             const payload = {
               title: form.elements.title.value.trim(),
               description: form.elements.description.value.trim() || null,
-              type: form.elements.type.value,
+              type: "todo",
               context: form.elements.context.value,
+              todo_kind: todoKind,
               importance,
               urgency,
               priority: evaluateTaskPriority(importance, urgency),
               due_date: dueDate,
               recurrence_natural: recurrenceNatural || null,
-              recurrence_cron: recurrenceCron || null,
-              recurrence_prepare_days: prepareDays ? Number(prepareDays) : null,
-              advanced_format: form.elements.advanced_format.value,
-              advanced_body: advancedBody || null,
+              recurrence_frequency: recurrenceFrequency,
+              recurrence_calendar: form.elements.recurrence_calendar.value,
+              recurrence_month: form.elements.recurrence_month.value ? Number(form.elements.recurrence_month.value) : null,
+              recurrence_day: form.elements.recurrence_day.value ? Number(form.elements.recurrence_day.value) : null,
+              recurrence_weekdays: form.elements.recurrence_weekdays.value.trim() || null,
             };
             try {
               await api(`/tasks/${form.getAttribute("data-task-id")}`, {
@@ -1883,11 +1951,13 @@
 
       function bindTaskPriorityPreview() {
         document.querySelector("#task-importance").addEventListener("change", updateTaskPriorityPreview);
-        document.querySelector("#task-urgency").addEventListener("change", updateTaskPriorityPreview);
         document.querySelector("#task-due-date").addEventListener("change", updateTaskPriorityPreview);
+        document.querySelector("#task-is-recurring").addEventListener("change", () => {
+          document.querySelector("#task-recurrence-fields").hidden = !document.querySelector("#task-is-recurring").checked;
+          updateTaskPriorityPreview();
+        });
         document.querySelector("#task-recurrence-natural").addEventListener("input", updateTaskPriorityPreview);
-        document.querySelector("#task-recurrence-cron").addEventListener("input", updateTaskPriorityPreview);
-        document.querySelector("#task-recurrence-prepare-days").addEventListener("input", updateTaskPriorityPreview);
+        document.querySelector("#task-recurrence-frequency").addEventListener("change", updateTaskPriorityPreview);
         updateTaskPriorityPreview();
       }
 
@@ -1951,35 +2021,58 @@
         event.preventDefault();
         setStatus(taskStatus, "保存中...");
         const descriptionInput = document.querySelector("#task-description");
+        const isRecurring = document.querySelector("#task-is-recurring").checked;
         const recurrenceNatural = document.querySelector("#task-recurrence-natural").value.trim();
-        const recurrenceCron = document.querySelector("#task-recurrence-cron").value.trim();
-        const prepareDays = document.querySelector("#task-recurrence-prepare-days").value;
-        const advancedBody = document.querySelector("#task-advanced-body").value.trim();
-        const importance = importanceWithRecurrence(document.querySelector("#task-importance").value, recurrenceNatural, recurrenceCron);
+        const todoKind = isRecurring ? "recurring" : "one_time";
+        const importance = importanceWithRecurrence(document.querySelector("#task-importance").value, recurrenceNatural, null, todoKind);
         const dueDate = document.querySelector("#task-due-date").value || null;
-        const urgency = urgencyWithDueDate(document.querySelector("#task-urgency").value, dueDate, false, prepareDays || null);
+        const urgency = urgencyWithDueDate("medium", dueDate, false);
         const payload = {
           title: document.querySelector("#task-title").value.trim(),
           description: descriptionInput ? descriptionInput.value.trim() || null : null,
-          type: document.querySelector("#task-type").value,
+          type: "todo",
           context: document.querySelector("#task-context").value,
+          todo_kind: todoKind,
           priority: evaluateTaskPriority(importance, urgency),
           importance,
           urgency,
           due_date: dueDate,
-          recurrence_natural: recurrenceNatural || null,
-          recurrence_cron: recurrenceCron || null,
-          recurrence_prepare_days: prepareDays ? Number(prepareDays) : null,
-          advanced_format: document.querySelector("#task-advanced-format").value,
-          advanced_body: advancedBody || null,
+          recurrence_natural: isRecurring ? recurrenceNatural || null : null,
+          recurrence_frequency: isRecurring ? document.querySelector("#task-recurrence-frequency").value : null,
+          recurrence_calendar: isRecurring ? document.querySelector("#task-recurrence-calendar").value : null,
+          recurrence_month: isRecurring && document.querySelector("#task-recurrence-month").value ? Number(document.querySelector("#task-recurrence-month").value) : null,
+          recurrence_day: isRecurring && document.querySelector("#task-recurrence-day").value ? Number(document.querySelector("#task-recurrence-day").value) : null,
+          recurrence_weekdays: isRecurring ? document.querySelector("#task-recurrence-weekdays").value.trim() || null : null,
         };
         try {
           await api("/tasks", { method: "POST", body: JSON.stringify(payload) });
           taskForm.reset();
+          document.querySelector("#task-recurrence-fields").hidden = true;
           setStatus(taskStatus, "已添加");
           await refresh();
         } catch (error) {
           setStatus(taskStatus, "保存失败", true);
+        }
+      });
+
+      notTodoForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        setStatus(notTodoStatus, "保存中...");
+        const payload = {
+          title: document.querySelector("#not-todo-title").value.trim(),
+          type: "not_todo",
+          not_todo_group: document.querySelector("#not-todo-group").value,
+          importance: "high",
+          urgency: "medium",
+          priority: "ultra",
+        };
+        try {
+          await api("/tasks", { method: "POST", body: JSON.stringify(payload) });
+          notTodoForm.reset();
+          setStatus(notTodoStatus, "已添加");
+          await refresh();
+        } catch (error) {
+          setStatus(notTodoStatus, "保存失败", true);
         }
       });
 
