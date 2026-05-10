@@ -83,6 +83,29 @@ Update docs when changing product direction, architecture, or major workflows.
 - `docs/roadmap.md` for planned work
 - `AGENTS.md` for agent guidance
 
+## GitHub Workflow
+
+When publishing work to GitHub, prefer a clear and conservative flow.
+
+Recommended flow for feature work:
+
+1. Keep changes on a feature branch such as `codex/activity-logs-browser-ui`.
+2. Before switching branches, check `git status -sb`.
+3. Commit all intended changes on the feature branch.
+4. Push the feature branch to GitHub.
+5. Switch back to `main`.
+6. Merge the feature branch into `main`.
+7. Push `main` to GitHub.
+
+Do not switch branches or merge while there are uncommitted changes unless the user explicitly asks for that and the risk is clear.
+
+When explaining git work to the user, use plain language:
+
+- "Feature branch" means a safe place to develop before touching `main`.
+- `main` should represent the current usable version.
+- Merge only after the feature branch has been checked and committed.
+- If a PR cannot be created automatically, provide the GitHub PR URL and explain the blocker.
+
 ## Testing
 
 There is no test suite yet. When adding meaningful behavior, prefer focused tests with the smallest reasonable setup. If tests cannot be added yet, document manual verification.

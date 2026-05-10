@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
+from sqlalchemy import inspect, text
 
 from database import Base, engine
 from routers import activity_logs, daily, money, tasks, thoughts
@@ -7,7 +8,35 @@ from routers import activity_logs, daily, money, tasks, thoughts
 
 Base.metadata.create_all(bind=engine)
 
+
+def sync_prototype_schema():
+    inspector = inspect(engine)
+    if "tasks" not in inspector.get_table_names():
+        return
+    task_columns = {column["name"] for column in inspector.get_columns("tasks")}
+    columns_to_add = {
+        "importance": "ALTER TABLE tasks ADD COLUMN importance VARCHAR(50) DEFAULT 'medium'",
+        "urgency": "ALTER TABLE tasks ADD COLUMN urgency VARCHAR(50) DEFAULT 'medium'",
+    }
+    with engine.begin() as connection:
+        for column_name, statement in columns_to_add.items():
+            if column_name not in task_columns:
+                connection.execute(text(statement))
+
+
+sync_prototype_schema()
+
 app = FastAPI(title="Aide")
+
+
+@app.middleware("http")
+async def no_cache_app_static(request, call_next):
+    response = await call_next(request)
+    if request.url.path.startswith("/app"):
+        response.headers["Cache-Control"] = "no-store"
+    return response
+
+
 app.include_router(daily.router)
 app.include_router(tasks.router)
 app.include_router(thoughts.router)

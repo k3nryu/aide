@@ -13,6 +13,8 @@ class TaskDB(Base):
     description = Column(Text)
     type = Column(String(50), default="todo")  # todo / not_todo
     priority = Column(String(50), default="medium")
+    importance = Column(String(50), default="medium")
+    urgency = Column(String(50), default="medium")
     done = Column(Boolean, default=False)
     due_date = Column(Date)
     created_at = Column(DateTime, default=datetime.utcnow)

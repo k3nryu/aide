@@ -9,6 +9,8 @@ class TaskCreate(BaseModel):
     description: Optional[str] = None
     type: str = "todo"
     priority: str = "medium"
+    importance: str = "medium"
+    urgency: str = "medium"
     due_date: Optional[date] = None
 
 
