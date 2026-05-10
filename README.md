@@ -18,6 +18,7 @@ The project is currently an early backend-first prototype. It exposes a FastAPI 
 - Thought capture with optional tags
 - Activity/life log capture for things that happened outside the task list
 - Money record capture for income and expenses
+- Financial independence dashboard with FI assets, passive income, expenses, and safe withdrawal rate
 - Simple browser UI for quick local testing
 - Dockerized backend service
 

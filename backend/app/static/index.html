@@ -708,24 +708,48 @@
             </div>
             <div class="stats">
               <div class="stat">
-                <span class="stat-value" id="finance-assets">0</span>
-                <span class="money-small" id="finance-assets-small"></span>
-                <span class="stat-label">当前资产</span>
+                <span class="stat-value" id="finance-coverage">0%</span>
+                <span class="money-small" id="finance-coverage-small"></span>
+                <span class="stat-label">被动收入覆盖率</span>
               </div>
               <div class="stat">
-                <span class="stat-value" id="finance-daily-income">0</span>
-                <span class="money-small" id="finance-daily-income-small"></span>
-                <span class="stat-label">每天大概赚</span>
+                <span class="stat-value" id="finance-assets">0</span>
+                <span class="money-small" id="finance-assets-small"></span>
+                <span class="stat-label">FI资产</span>
               </div>
               <div class="stat">
                 <span class="stat-value" id="finance-target">0</span>
                 <span class="money-small" id="finance-target-small"></span>
-                <span class="stat-label">财务自由目标</span>
+                <span class="money-small" id="finance-target-rate"></span>
+                <span class="stat-label">FI目标本金</span>
               </div>
               <div class="stat">
                 <span class="stat-value" id="finance-gap">0</span>
+                <span class="money-small" id="finance-gap-small"></span>
                 <span class="money-small" id="finance-gap-time"></span>
                 <span class="stat-label">还差</span>
+              </div>
+            </div>
+            <div class="stats">
+              <div class="stat">
+                <span class="stat-value" id="finance-monthly-expense">0</span>
+                <span class="money-small" id="finance-monthly-expense-small"></span>
+                <span class="stat-label">每月生活支出</span>
+              </div>
+              <div class="stat">
+                <span class="stat-value" id="finance-passive-income">0</span>
+                <span class="money-small" id="finance-passive-income-small"></span>
+                <span class="stat-label">每月被动收入</span>
+              </div>
+              <div class="stat">
+                <span class="stat-value" id="finance-cashflow-gap">0</span>
+                <span class="money-small" id="finance-cashflow-gap-small"></span>
+                <span class="stat-label">每月现金流差额</span>
+              </div>
+              <div class="stat">
+                <span class="stat-value" id="finance-excluded-assets">0</span>
+                <span class="money-small" id="finance-excluded-assets-small"></span>
+                <span class="stat-label">非FI资产</span>
               </div>
             </div>
             <div class="meta" id="exchange-status"></div>
@@ -733,51 +757,79 @@
         </section>
 
         <section>
-          <h2>更新财务状态</h2>
+          <h2>更新财富自由参数</h2>
           <form id="finance-form" onsubmit="return false">
+            <h2>FI资产</h2>
             <div class="asset-row">
               <label>
-                日元资产
-                <input id="asset-jpy" name="asset_jpy" type="number" step="1" inputmode="decimal" />
+                日元FI资产
+                <input id="fi-asset-jpy" name="fi_asset_jpy" type="number" step="1" inputmode="decimal" />
               </label>
               <span class="meta">JPY</span>
             </div>
             <div class="asset-row">
               <label>
-                人民币资产
-                <input id="asset-cny" name="asset_cny" type="number" step="1" inputmode="decimal" />
+                人民币FI资产
+                <input id="fi-asset-cny" name="fi_asset_cny" type="number" step="1" inputmode="decimal" />
               </label>
               <span class="meta">CNY</span>
             </div>
             <div class="asset-row">
               <label>
-                美金资产
-                <input id="asset-usd" name="asset_usd" type="number" step="1" inputmode="decimal" />
+                美金FI资产
+                <input id="fi-asset-usd" name="fi_asset_usd" type="number" step="1" inputmode="decimal" />
               </label>
               <span class="meta">USD</span>
             </div>
             <div class="asset-row">
               <label>
-                比特币
-                <input id="asset-btc" name="asset_btc" type="number" step="0.00000001" inputmode="decimal" />
+                比特币FI资产
+                <input id="fi-asset-btc" name="fi_asset_btc" type="number" step="0.00000001" inputmode="decimal" />
               </label>
               <span class="meta">BTC</span>
             </div>
             <div class="asset-row">
               <label>
-                以太坊
-                <input id="asset-eth" name="asset_eth" type="number" step="0.00000001" inputmode="decimal" />
+                以太坊FI资产
+                <input id="fi-asset-eth" name="fi_asset_eth" type="number" step="0.00000001" inputmode="decimal" />
               </label>
               <span class="meta">ETH</span>
             </div>
+            <details>
+              <summary class="secondary">非FI资产</summary>
+              <div class="detail-body">
+                <div class="asset-row">
+                  <label>
+                    日元非FI资产
+                    <input id="excluded-asset-jpy" name="excluded_asset_jpy" type="number" step="1" inputmode="decimal" />
+                  </label>
+                  <span class="meta">JPY</span>
+                </div>
+                <div class="asset-row">
+                  <label>
+                    人民币非FI资产
+                    <input id="excluded-asset-cny" name="excluded_asset_cny" type="number" step="1" inputmode="decimal" />
+                  </label>
+                  <span class="meta">CNY</span>
+                </div>
+                <div class="asset-row">
+                  <label>
+                    美金非FI资产
+                    <input id="excluded-asset-usd" name="excluded_asset_usd" type="number" step="1" inputmode="decimal" />
+                  </label>
+                  <span class="meta">USD</span>
+                </div>
+                <div class="meta">自住房、车、难变现物品等可以放这里展示，但默认不参与 FI 目标计算。</div>
+              </div>
+            </details>
             <div class="row">
               <label>
-                每天大概赚多少钱
-                <input id="finance-daily-income-input" name="daily_income" required type="number" step="1" inputmode="decimal" />
+                每月生活支出
+                <input id="finance-monthly-expense-input" name="monthly_expense" required type="number" step="1" inputmode="decimal" />
               </label>
               <label>
-                日收入单位
-                <select id="finance-daily-income-currency">
+                支出单位
+                <select id="finance-monthly-expense-currency">
                   <option value="JPY">JPY</option>
                   <option value="CNY">CNY</option>
                   <option value="USD">USD</option>
@@ -786,18 +838,36 @@
             </div>
             <div class="row">
               <label>
-                财务自由目标
-                <input id="finance-target-input" name="target" required type="number" step="1" inputmode="decimal" />
+                每月被动收入
+                <input id="finance-passive-income-input" name="monthly_passive_income" required type="number" step="1" inputmode="decimal" />
               </label>
               <label>
-                目标单位
-                <select id="finance-target-currency">
+                被动收入单位
+                <select id="finance-passive-income-currency">
                   <option value="JPY">JPY</option>
                   <option value="CNY">CNY</option>
                   <option value="USD">USD</option>
                 </select>
               </label>
             </div>
+            <div class="row">
+              <label>
+                每月新增投资
+                <input id="finance-monthly-investment-input" name="monthly_new_investment" type="number" step="1" inputmode="decimal" />
+              </label>
+              <label>
+                新增投资单位
+                <select id="finance-monthly-investment-currency">
+                  <option value="JPY">JPY</option>
+                  <option value="CNY">CNY</option>
+                  <option value="USD">USD</option>
+                </select>
+              </label>
+            </div>
+            <label>
+              安全提取率（%）
+              <input id="finance-withdrawal-rate" name="safe_withdrawal_rate" required type="number" min="1" max="8" step="0.1" />
+            </label>
             <button type="submit">更新</button>
             <div class="status" id="finance-status"></div>
           </form>
@@ -974,32 +1044,55 @@
         return `还需要 ${parts.join("")}`;
       }
 
+      function formatDurationFromMonths(months) {
+        if (!Number.isFinite(months) || months <= 0) return "已达到目标";
+        return formatDurationFromDays(months * 30);
+      }
+
       function loadFinanceProfile() {
+        const emptyAssets = { JPY: 0, CNY: 0, USD: 0, BTC: 0, ETH: 0 };
         try {
           const stored = JSON.parse(localStorage.getItem("aideFinanceProfile") || "{}");
           const storedAssets = stored.assetsByCurrency || {};
+          const storedFiAssets = stored.fiAssetsByCurrency || storedAssets || {};
+          const storedExcludedAssets = stored.excludedAssetsByCurrency || {};
+          const migratedMonthlyInvestment = Number(stored.monthlyNewInvestment || 0) || Number(stored.dailyIncome || 0) * 30;
           return {
             displayCurrency: stored.displayCurrency || "JPY",
-            assetsByCurrency: {
-              JPY: Number(storedAssets.JPY || stored.assets || 0),
-              CNY: Number(storedAssets.CNY || 0),
-              USD: Number(storedAssets.USD || 0),
-              BTC: Number(storedAssets.BTC || 0),
-              ETH: Number(storedAssets.ETH || 0),
+            fiAssetsByCurrency: {
+              JPY: Number(storedFiAssets.JPY || stored.assets || 0),
+              CNY: Number(storedFiAssets.CNY || 0),
+              USD: Number(storedFiAssets.USD || 0),
+              BTC: Number(storedFiAssets.BTC || 0),
+              ETH: Number(storedFiAssets.ETH || 0),
             },
-            dailyIncome: Number(stored.dailyIncome || 0),
-            dailyIncomeCurrency: stored.dailyIncomeCurrency || "JPY",
-            target: Number(stored.target || 0),
-            targetCurrency: stored.targetCurrency || "JPY",
+            excludedAssetsByCurrency: {
+              JPY: Number(storedExcludedAssets.JPY || 0),
+              CNY: Number(storedExcludedAssets.CNY || 0),
+              USD: Number(storedExcludedAssets.USD || 0),
+              BTC: Number(storedExcludedAssets.BTC || 0),
+              ETH: Number(storedExcludedAssets.ETH || 0),
+            },
+            monthlyExpense: Number(stored.monthlyExpense || 0),
+            monthlyExpenseCurrency: stored.monthlyExpenseCurrency || "JPY",
+            monthlyPassiveIncome: Number(stored.monthlyPassiveIncome || 0),
+            monthlyPassiveIncomeCurrency: stored.monthlyPassiveIncomeCurrency || "JPY",
+            monthlyNewInvestment: migratedMonthlyInvestment,
+            monthlyNewInvestmentCurrency: stored.monthlyNewInvestmentCurrency || stored.dailyIncomeCurrency || "JPY",
+            safeWithdrawalRate: Number(stored.safeWithdrawalRate || 3.5),
           };
         } catch (error) {
           return {
             displayCurrency: "JPY",
-            assetsByCurrency: { JPY: 0, CNY: 0, USD: 0, BTC: 0, ETH: 0 },
-            dailyIncome: 0,
-            dailyIncomeCurrency: "JPY",
-            target: 0,
-            targetCurrency: "JPY",
+            fiAssetsByCurrency: { ...emptyAssets },
+            excludedAssetsByCurrency: { ...emptyAssets },
+            monthlyExpense: 0,
+            monthlyExpenseCurrency: "JPY",
+            monthlyPassiveIncome: 0,
+            monthlyPassiveIncomeCurrency: "JPY",
+            monthlyNewInvestment: 0,
+            monthlyNewInvestmentCurrency: "JPY",
+            safeWithdrawalRate: 3.5,
           };
         }
       }
@@ -1058,7 +1151,10 @@
       }
 
       function getTotalAssets(currency) {
-        const assets = financeProfile.assetsByCurrency;
+        return getAssetBucketTotal(financeProfile.fiAssetsByCurrency, currency);
+      }
+
+      function getAssetBucketTotal(assets, currency) {
         return (
           convertToCurrency(assets.JPY, "JPY", currency) +
           convertToCurrency(assets.CNY, "CNY", currency) +
@@ -1068,15 +1164,33 @@
         );
       }
 
-      function getDailyIncome(currency) {
-        return convertToCurrency(financeProfile.dailyIncome, financeProfile.dailyIncomeCurrency, currency);
+      function getExcludedAssets(currency) {
+        return getAssetBucketTotal(financeProfile.excludedAssetsByCurrency, currency);
+      }
+
+      function getMonthlyExpense(currency) {
+        return convertToCurrency(financeProfile.monthlyExpense, financeProfile.monthlyExpenseCurrency, currency);
+      }
+
+      function getMonthlyPassiveIncome(currency) {
+        return convertToCurrency(financeProfile.monthlyPassiveIncome, financeProfile.monthlyPassiveIncomeCurrency, currency);
+      }
+
+      function getMonthlyNewInvestment(currency) {
+        return convertToCurrency(financeProfile.monthlyNewInvestment, financeProfile.monthlyNewInvestmentCurrency, currency);
       }
 
       function getTarget(currency) {
-        return convertToCurrency(financeProfile.target, financeProfile.targetCurrency, currency);
+        const monthlyExpense = getMonthlyExpense(currency);
+        const rate = Number(financeProfile.safeWithdrawalRate || 3.5) / 100;
+        if (!rate) return 0;
+        return (monthlyExpense * 12) / rate;
       }
 
       function getFinanceGap(currency) {
+        const monthlyExpense = getMonthlyExpense(currency);
+        const monthlyPassiveIncome = getMonthlyPassiveIncome(currency);
+        if (monthlyExpense > 0 && monthlyPassiveIncome >= monthlyExpense) return 0;
         return Math.max(getTarget(currency) - getTotalAssets(currency), 0);
       }
 
@@ -1413,29 +1527,51 @@
       function renderFinanceProfile() {
         const currency = financeProfile.displayCurrency;
         const assets = getTotalAssets(currency);
-        const dailyIncome = getDailyIncome(currency);
+        const excludedAssets = getExcludedAssets(currency);
+        const monthlyExpense = getMonthlyExpense(currency);
+        const monthlyPassiveIncome = getMonthlyPassiveIncome(currency);
+        const monthlyNewInvestment = getMonthlyNewInvestment(currency);
         const target = getTarget(currency);
         const gap = getFinanceGap(currency);
-        const days = dailyIncome > 0 ? gap / dailyIncome : Infinity;
+        const months = monthlyNewInvestment > 0 ? gap / monthlyNewInvestment : Infinity;
+        const coverage = monthlyExpense > 0 ? Math.min((monthlyPassiveIncome / monthlyExpense) * 100, 999) : 0;
+        const cashflowGap = Math.max(monthlyExpense - monthlyPassiveIncome, 0);
 
+        document.querySelector("#finance-coverage").textContent = `${coverage.toFixed(0)}%`;
+        document.querySelector("#finance-coverage-small").textContent =
+          monthlyExpense > 0 ? `(${compactMoneyText(monthlyPassiveIncome, currency)} / ${compactMoneyText(monthlyExpense, currency)})` : "请先设置每月支出";
         document.querySelector("#finance-assets").textContent = formatMoneyWithCurrency(assets, currency);
         document.querySelector("#finance-assets-small").textContent = `(${compactMoneyText(assets, currency)})`;
-        document.querySelector("#finance-daily-income").textContent = formatMoneyWithCurrency(dailyIncome, currency);
-        document.querySelector("#finance-daily-income-small").textContent = `(${compactMoneyText(dailyIncome, currency)} / 日)`;
         document.querySelector("#finance-target").textContent = formatMoneyWithCurrency(target, currency);
         document.querySelector("#finance-target-small").textContent = `(${compactMoneyText(target, currency)})`;
+        document.querySelector("#finance-target-rate").textContent = `提取率 ${financeProfile.safeWithdrawalRate}%`;
         document.querySelector("#finance-gap").textContent = formatMoneyWithCurrency(gap, currency);
-        document.querySelector("#finance-gap-time").textContent = dailyIncome > 0 ? formatDurationFromDays(days) : "请先设置每日收入";
+        document.querySelector("#finance-gap-small").textContent = `(${compactMoneyText(gap, currency)})`;
+        document.querySelector("#finance-gap-time").textContent = monthlyNewInvestment > 0 ? formatDurationFromMonths(months) : "请先设置每月新增投资";
+        document.querySelector("#finance-monthly-expense").textContent = formatMoneyWithCurrency(monthlyExpense, currency);
+        document.querySelector("#finance-monthly-expense-small").textContent = `(${compactMoneyText(monthlyExpense, currency)} / 月)`;
+        document.querySelector("#finance-passive-income").textContent = formatMoneyWithCurrency(monthlyPassiveIncome, currency);
+        document.querySelector("#finance-passive-income-small").textContent = `(${compactMoneyText(monthlyPassiveIncome, currency)} / 月)`;
+        document.querySelector("#finance-cashflow-gap").textContent = formatMoneyWithCurrency(cashflowGap, currency);
+        document.querySelector("#finance-cashflow-gap-small").textContent = `(${compactMoneyText(cashflowGap, currency)} / 月)`;
+        document.querySelector("#finance-excluded-assets").textContent = formatMoneyWithCurrency(excludedAssets, currency);
+        document.querySelector("#finance-excluded-assets-small").textContent = `(${compactMoneyText(excludedAssets, currency)})`;
 
-        document.querySelector("#asset-jpy").value = financeProfile.assetsByCurrency.JPY || "";
-        document.querySelector("#asset-cny").value = financeProfile.assetsByCurrency.CNY || "";
-        document.querySelector("#asset-usd").value = financeProfile.assetsByCurrency.USD || "";
-        document.querySelector("#asset-btc").value = financeProfile.assetsByCurrency.BTC || "";
-        document.querySelector("#asset-eth").value = financeProfile.assetsByCurrency.ETH || "";
-        document.querySelector("#finance-daily-income-input").value = financeProfile.dailyIncome || "";
-        document.querySelector("#finance-daily-income-currency").value = financeProfile.dailyIncomeCurrency;
-        document.querySelector("#finance-target-input").value = financeProfile.target || "";
-        document.querySelector("#finance-target-currency").value = financeProfile.targetCurrency;
+        document.querySelector("#fi-asset-jpy").value = financeProfile.fiAssetsByCurrency.JPY || "";
+        document.querySelector("#fi-asset-cny").value = financeProfile.fiAssetsByCurrency.CNY || "";
+        document.querySelector("#fi-asset-usd").value = financeProfile.fiAssetsByCurrency.USD || "";
+        document.querySelector("#fi-asset-btc").value = financeProfile.fiAssetsByCurrency.BTC || "";
+        document.querySelector("#fi-asset-eth").value = financeProfile.fiAssetsByCurrency.ETH || "";
+        document.querySelector("#excluded-asset-jpy").value = financeProfile.excludedAssetsByCurrency.JPY || "";
+        document.querySelector("#excluded-asset-cny").value = financeProfile.excludedAssetsByCurrency.CNY || "";
+        document.querySelector("#excluded-asset-usd").value = financeProfile.excludedAssetsByCurrency.USD || "";
+        document.querySelector("#finance-monthly-expense-input").value = financeProfile.monthlyExpense || "";
+        document.querySelector("#finance-monthly-expense-currency").value = financeProfile.monthlyExpenseCurrency;
+        document.querySelector("#finance-passive-income-input").value = financeProfile.monthlyPassiveIncome || "";
+        document.querySelector("#finance-passive-income-currency").value = financeProfile.monthlyPassiveIncomeCurrency;
+        document.querySelector("#finance-monthly-investment-input").value = financeProfile.monthlyNewInvestment || "";
+        document.querySelector("#finance-monthly-investment-currency").value = financeProfile.monthlyNewInvestmentCurrency;
+        document.querySelector("#finance-withdrawal-rate").value = financeProfile.safeWithdrawalRate || 3.5;
         document.querySelector("#exchange-status").textContent = exchangeRates.error
           ? exchangeRates.error
           : exchangeRates.ready
@@ -1734,17 +1870,27 @@
         event.preventDefault();
         setStatus(financeStatus, "保存中...");
         try {
-          financeProfile.assetsByCurrency = {
-            JPY: Number(document.querySelector("#asset-jpy").value || 0),
-            CNY: Number(document.querySelector("#asset-cny").value || 0),
-            USD: Number(document.querySelector("#asset-usd").value || 0),
-            BTC: Number(document.querySelector("#asset-btc").value || 0),
-            ETH: Number(document.querySelector("#asset-eth").value || 0),
+          financeProfile.fiAssetsByCurrency = {
+            JPY: Number(document.querySelector("#fi-asset-jpy").value || 0),
+            CNY: Number(document.querySelector("#fi-asset-cny").value || 0),
+            USD: Number(document.querySelector("#fi-asset-usd").value || 0),
+            BTC: Number(document.querySelector("#fi-asset-btc").value || 0),
+            ETH: Number(document.querySelector("#fi-asset-eth").value || 0),
           };
-          financeProfile.dailyIncome = Number(document.querySelector("#finance-daily-income-input").value || 0);
-          financeProfile.dailyIncomeCurrency = document.querySelector("#finance-daily-income-currency").value;
-          financeProfile.target = Number(document.querySelector("#finance-target-input").value || 0);
-          financeProfile.targetCurrency = document.querySelector("#finance-target-currency").value;
+          financeProfile.excludedAssetsByCurrency = {
+            JPY: Number(document.querySelector("#excluded-asset-jpy").value || 0),
+            CNY: Number(document.querySelector("#excluded-asset-cny").value || 0),
+            USD: Number(document.querySelector("#excluded-asset-usd").value || 0),
+            BTC: 0,
+            ETH: 0,
+          };
+          financeProfile.monthlyExpense = Number(document.querySelector("#finance-monthly-expense-input").value || 0);
+          financeProfile.monthlyExpenseCurrency = document.querySelector("#finance-monthly-expense-currency").value;
+          financeProfile.monthlyPassiveIncome = Number(document.querySelector("#finance-passive-income-input").value || 0);
+          financeProfile.monthlyPassiveIncomeCurrency = document.querySelector("#finance-passive-income-currency").value;
+          financeProfile.monthlyNewInvestment = Number(document.querySelector("#finance-monthly-investment-input").value || 0);
+          financeProfile.monthlyNewInvestmentCurrency = document.querySelector("#finance-monthly-investment-currency").value;
+          financeProfile.safeWithdrawalRate = Number(document.querySelector("#finance-withdrawal-rate").value || 3.5);
           saveFinanceProfile(financeProfile);
           renderFinanceProfile();
           document.querySelector("#stat-net").textContent = formatMoneyWithCurrency(
