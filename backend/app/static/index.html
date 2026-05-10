@@ -278,6 +278,38 @@
         gap: 10px;
       }
 
+      .money-small {
+        display: block;
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 600;
+        margin-top: 3px;
+      }
+
+      .currency-toggle {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 6px;
+      }
+
+      .currency-button {
+        border: 1px solid var(--line);
+        background: #fff;
+        color: var(--muted);
+      }
+
+      .currency-button.active {
+        background: var(--accent);
+        color: #fff;
+      }
+
+      .asset-row {
+        display: grid;
+        grid-template-columns: 1fr 98px;
+        gap: 8px;
+        align-items: end;
+      }
+
       .item-title {
         font-weight: 700;
         overflow-wrap: anywhere;
@@ -533,42 +565,100 @@
         <section>
           <h2>财务概况</h2>
           <div class="finance-summary">
+            <div class="currency-toggle">
+              <button class="currency-button active" type="button" data-display-currency="JPY">日元</button>
+              <button class="currency-button" type="button" data-display-currency="CNY">人民币</button>
+            </div>
             <div class="stats">
               <div class="stat">
                 <span class="stat-value" id="finance-assets">0</span>
+                <span class="money-small" id="finance-assets-small"></span>
                 <span class="stat-label">当前资产</span>
               </div>
               <div class="stat">
                 <span class="stat-value" id="finance-daily-income">0</span>
+                <span class="money-small" id="finance-daily-income-small"></span>
                 <span class="stat-label">每天大概赚</span>
               </div>
               <div class="stat">
                 <span class="stat-value" id="finance-target">0</span>
+                <span class="money-small" id="finance-target-small"></span>
                 <span class="stat-label">财务自由目标</span>
               </div>
               <div class="stat">
                 <span class="stat-value" id="finance-gap">0</span>
+                <span class="money-small" id="finance-gap-time"></span>
                 <span class="stat-label">还差</span>
               </div>
             </div>
+            <div class="meta" id="exchange-status"></div>
           </div>
         </section>
 
         <section>
           <h2>更新财务状态</h2>
           <form id="finance-form" onsubmit="return false">
-            <label>
-              当前资产
-              <input id="finance-assets-input" name="assets" required type="number" step="1" inputmode="decimal" />
-            </label>
+            <div class="asset-row">
+              <label>
+                日元资产
+                <input id="asset-jpy" name="asset_jpy" type="number" step="1" inputmode="decimal" />
+              </label>
+              <span class="meta">JPY</span>
+            </div>
+            <div class="asset-row">
+              <label>
+                人民币资产
+                <input id="asset-cny" name="asset_cny" type="number" step="1" inputmode="decimal" />
+              </label>
+              <span class="meta">CNY</span>
+            </div>
+            <div class="asset-row">
+              <label>
+                美金资产
+                <input id="asset-usd" name="asset_usd" type="number" step="1" inputmode="decimal" />
+              </label>
+              <span class="meta">USD</span>
+            </div>
+            <div class="asset-row">
+              <label>
+                比特币
+                <input id="asset-btc" name="asset_btc" type="number" step="0.00000001" inputmode="decimal" />
+              </label>
+              <span class="meta">BTC</span>
+            </div>
+            <div class="asset-row">
+              <label>
+                以太坊
+                <input id="asset-eth" name="asset_eth" type="number" step="0.00000001" inputmode="decimal" />
+              </label>
+              <span class="meta">ETH</span>
+            </div>
             <div class="row">
               <label>
                 每天大概赚多少钱
                 <input id="finance-daily-income-input" name="daily_income" required type="number" step="1" inputmode="decimal" />
               </label>
               <label>
+                日收入单位
+                <select id="finance-daily-income-currency">
+                  <option value="JPY">JPY</option>
+                  <option value="CNY">CNY</option>
+                  <option value="USD">USD</option>
+                </select>
+              </label>
+            </div>
+            <div class="row">
+              <label>
                 财务自由目标
                 <input id="finance-target-input" name="target" required type="number" step="1" inputmode="decimal" />
+              </label>
+              <label>
+                目标单位
+                <select id="finance-target-currency">
+                  <option value="JPY">JPY</option>
+                  <option value="CNY">CNY</option>
+                  <option value="USD">USD</option>
+                </select>
               </label>
             </div>
             <button type="submit">更新</button>
@@ -602,6 +692,15 @@
       const financeStatus = document.querySelector("#finance-status");
       const briefing = document.querySelector("#briefing");
       const financeProfile = loadFinanceProfile();
+      const exchangeRates = {
+        ready: false,
+        date: null,
+        error: null,
+        fiatToJpy: { JPY: 1, CNY: 20, USD: 155 },
+        fiatToCny: { JPY: 0.05, CNY: 1, USD: 7.2 },
+        cryptoToJpy: { BTC: 0, ETH: 0 },
+        cryptoToCny: { BTC: 0, ETH: 0 },
+      };
 
       try {
         today.textContent = new Intl.DateTimeFormat("zh-CN", {
@@ -620,6 +719,11 @@
           if (target.getAttribute && target.getAttribute("data-page")) {
             event.preventDefault();
             showPage(target.getAttribute("data-page"));
+            return;
+          }
+          if (target.getAttribute && target.getAttribute("data-display-currency")) {
+            event.preventDefault();
+            setDisplayCurrency(target.getAttribute("data-display-currency"));
             return;
           }
           target = target.parentNode;
@@ -648,6 +752,29 @@
         }
       }
 
+      function setDisplayCurrency(currency) {
+        financeProfile.displayCurrency = currency;
+        saveFinanceProfile(financeProfile);
+        updateCurrencyButtons();
+        renderFinanceProfile();
+        document.querySelector("#stat-net").textContent = formatMoneyWithCurrency(getFinanceGap(currency), currency);
+      }
+
+      function updateCurrencyButtons() {
+        const buttons = document.querySelectorAll("[data-display-currency]");
+        for (let index = 0; index < buttons.length; index += 1) {
+          const button = buttons[index];
+          const isActive = button.getAttribute("data-display-currency") === financeProfile.displayCurrency;
+          if (isActive) {
+            button.classList.add("active");
+            button.setAttribute("aria-pressed", "true");
+          } else {
+            button.classList.remove("active");
+            button.setAttribute("aria-pressed", "false");
+          }
+        }
+      }
+
       function localDateTimeValue(value) {
         if (!value) return null;
         return new Date(value).toISOString();
@@ -667,21 +794,145 @@
         }).format(Number(value || 0));
       }
 
+      function formatMoneyWithCurrency(value, currency) {
+        const amount = Number(value || 0);
+        const maximumFractionDigits = currency === "JPY" ? 0 : 2;
+        const prefix = currency === "JPY" ? "¥" : currency === "CNY" ? "¥" : "$";
+        return `${prefix}${new Intl.NumberFormat("zh-CN", { maximumFractionDigits }).format(amount)} ${currency}`;
+      }
+
+      function compactMoneyText(value, currency) {
+        const amount = Number(value || 0);
+        const unit = currency === "JPY" ? "日元" : currency === "CNY" ? "人民币" : currency;
+        if (amount >= 100000000) {
+          return `约 ${(amount / 100000000).toFixed(2)} 亿${unit}`;
+        }
+        if (amount >= 10000000) {
+          return `约 ${(amount / 10000000).toFixed(2)} 千万${unit}`;
+        }
+        if (amount >= 10000) {
+          return `约 ${(amount / 10000).toFixed(2)} 万${unit}`;
+        }
+        return `约 ${formatMoney(amount)} ${unit}`;
+      }
+
+      function formatDurationFromDays(days) {
+        if (!Number.isFinite(days) || days <= 0) return "已达到目标";
+        const wholeDays = Math.ceil(days);
+        const years = Math.floor(wholeDays / 365);
+        const months = Math.floor((wholeDays % 365) / 30);
+        const remainingDays = (wholeDays % 365) % 30;
+        const parts = [];
+        if (years) parts.push(`${years}年`);
+        if (months) parts.push(`${months}个月`);
+        if (remainingDays || !parts.length) parts.push(`${remainingDays}天`);
+        return `还需要 ${parts.join("")}`;
+      }
+
       function loadFinanceProfile() {
         try {
           const stored = JSON.parse(localStorage.getItem("aideFinanceProfile") || "{}");
+          const storedAssets = stored.assetsByCurrency || {};
           return {
-            assets: Number(stored.assets || 0),
+            displayCurrency: stored.displayCurrency || "JPY",
+            assetsByCurrency: {
+              JPY: Number(storedAssets.JPY || stored.assets || 0),
+              CNY: Number(storedAssets.CNY || 0),
+              USD: Number(storedAssets.USD || 0),
+              BTC: Number(storedAssets.BTC || 0),
+              ETH: Number(storedAssets.ETH || 0),
+            },
             dailyIncome: Number(stored.dailyIncome || 0),
+            dailyIncomeCurrency: stored.dailyIncomeCurrency || "JPY",
             target: Number(stored.target || 0),
+            targetCurrency: stored.targetCurrency || "JPY",
           };
         } catch (error) {
-          return { assets: 0, dailyIncome: 0, target: 0 };
+          return {
+            displayCurrency: "JPY",
+            assetsByCurrency: { JPY: 0, CNY: 0, USD: 0, BTC: 0, ETH: 0 },
+            dailyIncome: 0,
+            dailyIncomeCurrency: "JPY",
+            target: 0,
+            targetCurrency: "JPY",
+          };
         }
       }
 
       function saveFinanceProfile(profile) {
         localStorage.setItem("aideFinanceProfile", JSON.stringify(profile));
+      }
+
+      async function refreshExchangeRates() {
+        try {
+          const fiatResponse = await fetch("https://api.frankfurter.dev/v1/latest?base=JPY&symbols=CNY,USD");
+          const fiatData = await fiatResponse.json();
+          const jpyToCny = Number(fiatData.rates.CNY);
+          const jpyToUsd = Number(fiatData.rates.USD);
+          exchangeRates.date = fiatData.date || null;
+          exchangeRates.fiatToCny = {
+            JPY: jpyToCny,
+            CNY: 1,
+            USD: jpyToCny / jpyToUsd,
+          };
+          exchangeRates.fiatToJpy = {
+            JPY: 1,
+            CNY: 1 / jpyToCny,
+            USD: 1 / jpyToUsd,
+          };
+
+          const cryptoResponse = await fetch(
+            "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum&vs_currencies=jpy,cny",
+          );
+          const cryptoData = await cryptoResponse.json();
+          const bitcoin = cryptoData.bitcoin || {};
+          const ethereum = cryptoData.ethereum || {};
+          exchangeRates.cryptoToJpy = {
+            BTC: Number(bitcoin.jpy || 0),
+            ETH: Number(ethereum.jpy || 0),
+          };
+          exchangeRates.cryptoToCny = {
+            BTC: Number(bitcoin.cny || 0),
+            ETH: Number(ethereum.cny || 0),
+          };
+          exchangeRates.ready = true;
+          exchangeRates.error = null;
+        } catch (error) {
+          exchangeRates.error = "汇率获取失败，暂时使用上次保存的输入和备用汇率";
+        }
+        renderFinanceProfile();
+      }
+
+      function convertToCurrency(amount, fromCurrency, toCurrency) {
+        const value = Number(amount || 0);
+        if (fromCurrency === toCurrency) return value;
+        if (fromCurrency === "BTC" || fromCurrency === "ETH") {
+          return value * (toCurrency === "JPY" ? exchangeRates.cryptoToJpy[fromCurrency] : exchangeRates.cryptoToCny[fromCurrency]);
+        }
+        return value * (toCurrency === "JPY" ? exchangeRates.fiatToJpy[fromCurrency] : exchangeRates.fiatToCny[fromCurrency]);
+      }
+
+      function getTotalAssets(currency) {
+        const assets = financeProfile.assetsByCurrency;
+        return (
+          convertToCurrency(assets.JPY, "JPY", currency) +
+          convertToCurrency(assets.CNY, "CNY", currency) +
+          convertToCurrency(assets.USD, "USD", currency) +
+          convertToCurrency(assets.BTC, "BTC", currency) +
+          convertToCurrency(assets.ETH, "ETH", currency)
+        );
+      }
+
+      function getDailyIncome(currency) {
+        return convertToCurrency(financeProfile.dailyIncome, financeProfile.dailyIncomeCurrency, currency);
+      }
+
+      function getTarget(currency) {
+        return convertToCurrency(financeProfile.target, financeProfile.targetCurrency, currency);
+      }
+
+      function getFinanceGap(currency) {
+        return Math.max(getTarget(currency) - getTotalAssets(currency), 0);
       }
 
       function setStatus(element, message, isError = false) {
@@ -808,48 +1059,51 @@
         }
       }
 
-      function renderMoney(items) {
-        moneyList.innerHTML = "";
-        if (!items.length) {
-          moneyList.innerHTML = '<div class="empty">还没有 money records</div>';
-          return;
-        }
-        for (const item of items.slice(0, 12)) {
-          const amount = Number(item.amount || 0);
-          const signedAmount = item.type === "income" ? amount : -amount;
-          const node = document.createElement("div");
-          node.className = "item";
-          node.innerHTML = `
-            <div class="item-title">${escapeHtml(item.title)} · ${formatMoney(signedAmount)}</div>
-            <div class="meta">
-              <span class="pill">${escapeHtml(item.type)}</span>
-              ${item.category ? `<span class="pill">${escapeHtml(item.category)}</span>` : ""}
-              ${item.record_date ? escapeHtml(item.record_date) : ""}
-            </div>
-            ${item.note ? `<div class="meta">${escapeHtml(item.note)}</div>` : ""}
-          `;
-          moneyList.appendChild(node);
-        }
-      }
-
       function renderStats(tasks, activities, money) {
         const openTasks = tasks.filter((item) => item.type !== "not_todo" && !item.done);
         const notTodos = tasks.filter((item) => item.type === "not_todo" && !item.done);
         document.querySelector("#stat-open-tasks").textContent = openTasks.length;
         document.querySelector("#stat-not-todos").textContent = notTodos.length;
         document.querySelector("#stat-activities").textContent = activities.length;
-        document.querySelector("#stat-net").textContent = formatMoney(Math.max(financeProfile.target - financeProfile.assets, 0));
+        document.querySelector("#stat-net").textContent = formatMoneyWithCurrency(
+          getFinanceGap(financeProfile.displayCurrency),
+          financeProfile.displayCurrency,
+        );
       }
 
       function renderFinanceProfile() {
-        const gap = Math.max(financeProfile.target - financeProfile.assets, 0);
-        document.querySelector("#finance-assets").textContent = formatMoney(financeProfile.assets);
-        document.querySelector("#finance-daily-income").textContent = formatMoney(financeProfile.dailyIncome);
-        document.querySelector("#finance-target").textContent = formatMoney(financeProfile.target);
-        document.querySelector("#finance-gap").textContent = formatMoney(gap);
-        document.querySelector("#finance-assets-input").value = financeProfile.assets || "";
+        const currency = financeProfile.displayCurrency;
+        const assets = getTotalAssets(currency);
+        const dailyIncome = getDailyIncome(currency);
+        const target = getTarget(currency);
+        const gap = getFinanceGap(currency);
+        const days = dailyIncome > 0 ? gap / dailyIncome : Infinity;
+
+        document.querySelector("#finance-assets").textContent = formatMoneyWithCurrency(assets, currency);
+        document.querySelector("#finance-assets-small").textContent = `(${compactMoneyText(assets, currency)})`;
+        document.querySelector("#finance-daily-income").textContent = formatMoneyWithCurrency(dailyIncome, currency);
+        document.querySelector("#finance-daily-income-small").textContent = `(${compactMoneyText(dailyIncome, currency)} / 日)`;
+        document.querySelector("#finance-target").textContent = formatMoneyWithCurrency(target, currency);
+        document.querySelector("#finance-target-small").textContent = `(${compactMoneyText(target, currency)})`;
+        document.querySelector("#finance-gap").textContent = formatMoneyWithCurrency(gap, currency);
+        document.querySelector("#finance-gap-time").textContent = dailyIncome > 0 ? formatDurationFromDays(days) : "请先设置每日收入";
+
+        document.querySelector("#asset-jpy").value = financeProfile.assetsByCurrency.JPY || "";
+        document.querySelector("#asset-cny").value = financeProfile.assetsByCurrency.CNY || "";
+        document.querySelector("#asset-usd").value = financeProfile.assetsByCurrency.USD || "";
+        document.querySelector("#asset-btc").value = financeProfile.assetsByCurrency.BTC || "";
+        document.querySelector("#asset-eth").value = financeProfile.assetsByCurrency.ETH || "";
         document.querySelector("#finance-daily-income-input").value = financeProfile.dailyIncome || "";
+        document.querySelector("#finance-daily-income-currency").value = financeProfile.dailyIncomeCurrency;
         document.querySelector("#finance-target-input").value = financeProfile.target || "";
+        document.querySelector("#finance-target-currency").value = financeProfile.targetCurrency;
+        document.querySelector("#exchange-status").textContent = exchangeRates.error
+          ? exchangeRates.error
+          : exchangeRates.ready
+            ? `汇率日期：${exchangeRates.date || "today"}`
+            : "正在获取今日汇率...";
+
+        updateCurrencyButtons();
       }
 
       function renderBriefing(data) {
@@ -897,6 +1151,19 @@
 
       function reportLine(key, value) {
         return `<div class="report-line"><span class="report-key">${escapeHtml(key)}</span><span>${escapeHtml(value || "未指定")}</span></div>`;
+      }
+
+      function bindCurrencyButtons() {
+        const buttons = document.querySelectorAll("[data-display-currency]");
+        for (let index = 0; index < buttons.length; index += 1) {
+          const button = buttons[index];
+          button.addEventListener("click", (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            setDisplayCurrency(button.getAttribute("data-display-currency"));
+          });
+        }
+        updateCurrencyButtons();
       }
 
       function escapeHtml(value) {
@@ -987,18 +1254,31 @@
         event.preventDefault();
         setStatus(financeStatus, "保存中...");
         try {
-          financeProfile.assets = Number(document.querySelector("#finance-assets-input").value || 0);
+          financeProfile.assetsByCurrency = {
+            JPY: Number(document.querySelector("#asset-jpy").value || 0),
+            CNY: Number(document.querySelector("#asset-cny").value || 0),
+            USD: Number(document.querySelector("#asset-usd").value || 0),
+            BTC: Number(document.querySelector("#asset-btc").value || 0),
+            ETH: Number(document.querySelector("#asset-eth").value || 0),
+          };
           financeProfile.dailyIncome = Number(document.querySelector("#finance-daily-income-input").value || 0);
+          financeProfile.dailyIncomeCurrency = document.querySelector("#finance-daily-income-currency").value;
           financeProfile.target = Number(document.querySelector("#finance-target-input").value || 0);
+          financeProfile.targetCurrency = document.querySelector("#finance-target-currency").value;
           saveFinanceProfile(financeProfile);
           renderFinanceProfile();
-          document.querySelector("#stat-net").textContent = formatMoney(Math.max(financeProfile.target - financeProfile.assets, 0));
+          document.querySelector("#stat-net").textContent = formatMoneyWithCurrency(
+            getFinanceGap(financeProfile.displayCurrency),
+            financeProfile.displayCurrency,
+          );
           setStatus(financeStatus, "已更新");
         } catch (error) {
           setStatus(financeStatus, "更新失败", true);
         }
       });
 
+      bindCurrencyButtons();
+      refreshExchangeRates();
       refresh().catch(() => {
         activityList.innerHTML = '<div class="empty">加载失败</div>';
         taskList.innerHTML = '<div class="empty">加载失败</div>';
