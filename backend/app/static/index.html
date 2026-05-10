@@ -445,16 +445,6 @@
                     </select>
                   </label>
                   <label>
-                    优先级
-                    <select id="task-priority" name="priority">
-                      <option value="medium">medium</option>
-                      <option value="high">high</option>
-                      <option value="low">low</option>
-                    </select>
-                  </label>
-                </div>
-                <div class="row">
-                  <label>
                     重要度
                     <select id="task-importance" name="importance">
                       <option value="medium">普通</option>
@@ -471,6 +461,7 @@
                     </select>
                   </label>
                 </div>
+                <div class="meta" id="task-priority-preview">Aide 会根据重要度和紧急度自动评估优先级。</div>
                 <label>
                   截止日期
                   <input id="task-due-date" name="due_date" type="date" />
@@ -505,28 +496,33 @@
               做了什么
               <input id="activity-title" name="title" maxlength="255" required placeholder="例：21:30 去了一趟便利店" />
             </label>
-            <div class="row">
-              <label>
-                分类
-                <select id="activity-category" name="category">
-                  <option value="">不分类</option>
-                  <option value="health">健康</option>
-                  <option value="movement">移动</option>
-                  <option value="food">饮食</option>
-                  <option value="sleep">睡眠</option>
-                  <option value="exercise">运动</option>
-                  <option value="habit">习惯</option>
-                </select>
-              </label>
-              <label>
-                时间
-                <input id="activity-time" name="occurred_at" type="datetime-local" />
-              </label>
-            </div>
-            <label>
-              备注
-              <textarea id="activity-note" name="note" placeholder="可选"></textarea>
-            </label>
+            <details>
+              <summary class="secondary">详细设置</summary>
+              <div class="detail-body">
+                <div class="row">
+                  <label>
+                    分类
+                    <select id="activity-category" name="category">
+                      <option value="">不分类</option>
+                      <option value="health">健康</option>
+                      <option value="movement">移动</option>
+                      <option value="food">饮食</option>
+                      <option value="sleep">睡眠</option>
+                      <option value="exercise">运动</option>
+                      <option value="habit">习惯</option>
+                    </select>
+                  </label>
+                  <label>
+                    时间
+                    <input id="activity-time" name="occurred_at" type="datetime-local" />
+                  </label>
+                </div>
+                <label>
+                  备注
+                  <textarea id="activity-note" name="note" placeholder="可选"></textarea>
+                </label>
+              </div>
+            </details>
             <button type="submit">记录</button>
             <div class="status" id="activity-status"></div>
           </form>
@@ -546,10 +542,15 @@
               内容
               <textarea id="thought-content" name="content" required placeholder="记录一个想法"></textarea>
             </label>
-            <label>
-              标签
-              <input id="thought-tag" name="tag" maxlength="100" placeholder="可选" />
-            </label>
+            <details>
+              <summary class="secondary">详细设置</summary>
+              <div class="detail-body">
+                <label>
+                  标签
+                  <input id="thought-tag" name="tag" maxlength="100" placeholder="可选" />
+                </label>
+              </div>
+            </details>
             <button type="submit">保存</button>
             <div class="status" id="thought-status"></div>
           </form>
@@ -946,6 +947,22 @@
         return "普通";
       }
 
+      function evaluateTaskPriority(importance, urgency) {
+        if (importance === "high" && urgency !== "high") return "high";
+        if (importance === "high" && urgency === "high") return "high";
+        if (importance !== "high" && urgency === "high") return "medium";
+        if (importance === "low" && urgency === "low") return "low";
+        return "medium";
+      }
+
+      function updateTaskPriorityPreview() {
+        const importance = document.querySelector("#task-importance").value;
+        const urgency = document.querySelector("#task-urgency").value;
+        const priority = evaluateTaskPriority(importance, urgency);
+        document.querySelector("#task-priority-preview").textContent =
+          `Aide 评估优先级：${labelLevel(priority)}。判断依据：重要度 ${labelLevel(importance)}，紧急度 ${labelLevel(urgency)}。`;
+      }
+
       async function api(path, options = {}) {
         const response = await fetch(path, {
           headers: { "Content-Type": "application/json" },
@@ -1166,6 +1183,12 @@
         updateCurrencyButtons();
       }
 
+      function bindTaskPriorityPreview() {
+        document.querySelector("#task-importance").addEventListener("change", updateTaskPriorityPreview);
+        document.querySelector("#task-urgency").addEventListener("change", updateTaskPriorityPreview);
+        updateTaskPriorityPreview();
+      }
+
       function escapeHtml(value) {
         return String(value)
           .replace(/&/g, "&amp;")
@@ -1214,13 +1237,15 @@
         event.preventDefault();
         setStatus(taskStatus, "保存中...");
         const descriptionInput = document.querySelector("#task-description");
+        const importance = document.querySelector("#task-importance").value;
+        const urgency = document.querySelector("#task-urgency").value;
         const payload = {
           title: document.querySelector("#task-title").value.trim(),
           description: descriptionInput ? descriptionInput.value.trim() || null : null,
           type: document.querySelector("#task-type").value,
-          priority: document.querySelector("#task-priority").value,
-          importance: document.querySelector("#task-importance").value,
-          urgency: document.querySelector("#task-urgency").value,
+          priority: evaluateTaskPriority(importance, urgency),
+          importance,
+          urgency,
           due_date: document.querySelector("#task-due-date").value || null,
         };
         try {
@@ -1278,6 +1303,7 @@
       });
 
       bindCurrencyButtons();
+      bindTaskPriorityPreview();
       refreshExchangeRates();
       refresh().catch(() => {
         activityList.innerHTML = '<div class="empty">加载失败</div>';
