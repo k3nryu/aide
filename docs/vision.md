@@ -41,7 +41,7 @@ A daily view that surfaces today's tasks, relevant not-to-dos, recent thoughts, 
 
 ### Tasks
 
-Simple task management with priority, due dates, completion state, and room for later workflow improvements.
+Task management should distinguish To-Do from Not-to-Do. To-Dos can be one-time or recurring, while Not-to-Dos represent ongoing boundaries and should not have a completion state. Aide should keep capture simple, then evaluate priority from importance, urgency, due dates, recurrence, and context.
 
 ### Not-To-Dos
 

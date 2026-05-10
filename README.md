@@ -11,8 +11,9 @@ The project is currently an early backend-first prototype. It exposes a FastAPI 
 - Task editing
 - Task completion
 - Company/personal task classification
-- Recurring task metadata with natural-language and cron-like fields
-- Markdown/YAML advanced input for recurring tasks and not-to-dos
+- One-time and recurring task metadata
+- Recurring task fields for daily, weekly, monthly, yearly, solar, and lunar patterns
+- Grouped not-to-dos for legal, morality, company, family, and health boundaries
 - Completed task lookup by time range or keyword
 - Calendar event capture for today's meetings
 - Thought capture with optional tags

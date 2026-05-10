@@ -73,6 +73,13 @@ Important fields:
 - `importance`
 - `urgency`
 - `context`
+- `todo_kind`
+- `recurrence_frequency`
+- `recurrence_calendar`
+- `recurrence_month`
+- `recurrence_day`
+- `recurrence_weekdays`
+- `not_todo_group`
 - `recurrence_natural`
 - `recurrence_cron`
 - `recurrence_prepare_days`
@@ -85,9 +92,11 @@ Important fields:
 
 The `type` field currently distinguishes `todo` from `not_todo`.
 The `context` field currently distinguishes `personal` from `company`.
-Recurring tasks are stored as metadata first; actual future instance generation is still a later service-layer concern.
+The `todo_kind` field distinguishes one-time todos from recurring todos.
+Recurring tasks are stored as metadata first: frequency, solar/lunar calendar, optional month/day/weekday fields, and optional natural-language notes. Actual future instance generation is still a later service-layer concern.
+The `not_todo_group` field groups not-to-dos into legal, morality, company, family, and health boundaries.
 The `priority` field uses four values: `ultra`, `high`, `medium`, and `low`.
-The `advanced_format` and `advanced_body` fields store Markdown or YAML text for richer recurring-task and not-to-do input.
+The `recurrence_cron`, `recurrence_prepare_days`, `advanced_format`, and `advanced_body` fields are retained for prototype compatibility, but the current product direction favors simple structured recurrence fields and no advanced rule input in the UI.
 
 ### `calendar_events`
 

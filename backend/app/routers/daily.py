@@ -18,6 +18,7 @@ def daily_briefing(db: Session = Depends(get_db)):
     tasks = (
         db.query(TaskDB)
         .filter(TaskDB.done == False)
+        .filter(TaskDB.type != "not_todo")
         .filter((TaskDB.due_date == today) | (TaskDB.due_date == None))
         .order_by(TaskDB.created_at.desc())
         .limit(5)
@@ -26,7 +27,6 @@ def daily_briefing(db: Session = Depends(get_db)):
     not_todos = (
         db.query(TaskDB)
         .filter(TaskDB.type == "not_todo")
-        .filter(TaskDB.done == False)
         .order_by(TaskDB.created_at.desc())
         .limit(5)
         .all()
