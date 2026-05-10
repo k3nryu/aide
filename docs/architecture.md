@@ -70,11 +70,42 @@ Important fields:
 - `description`
 - `type`
 - `priority`
+- `importance`
+- `urgency`
+- `context`
+- `recurrence_natural`
+- `recurrence_cron`
+- `recurrence_prepare_days`
+- `advanced_format`
+- `advanced_body`
 - `done`
 - `due_date`
+- `completed_at`
 - `created_at`
 
 The `type` field currently distinguishes `todo` from `not_todo`.
+The `context` field currently distinguishes `personal` from `company`.
+Recurring tasks are stored as metadata first; actual future instance generation is still a later service-layer concern.
+The `priority` field uses four values: `ultra`, `high`, `medium`, and `low`.
+The `advanced_format` and `advanced_body` fields store Markdown or YAML text for richer recurring-task and not-to-do input.
+
+### `calendar_events`
+
+Stores meetings imported from or aligned with calendars.
+
+Important fields:
+
+- `title`
+- `source`
+- `account_context`
+- `starts_at`
+- `ends_at`
+- `location`
+- `description`
+- `external_id`
+- `created_at`
+
+The current prototype supports the shared event model and manual/API ingestion. Real Google, Apple, and Outlook account sync still needs provider-specific authentication and sync jobs.
 
 ### `thoughts`
 
@@ -122,7 +153,11 @@ Current routes:
 - `GET /daily/briefing`
 - `GET /tasks`
 - `POST /tasks`
+- `PATCH /tasks/{task_id}`
 - `POST /tasks/{task_id}/complete`
+- `GET /calendar/sources`
+- `GET /calendar/events`
+- `POST /calendar/events`
 - `GET /thoughts`
 - `POST /thoughts`
 - `GET /activity-logs`
@@ -140,6 +175,7 @@ backend/app/
 ├── schemas.py
 ├── routers/
 │   ├── __init__.py
+│   ├── calendar.py
 │   ├── daily.py
 │   ├── money.py
 │   ├── tasks.py

@@ -10,6 +10,11 @@ The project is currently an early backend-first prototype. It exposes a FastAPI 
 - Task and not-to-do capture
 - Task editing
 - Task completion
+- Company/personal task classification
+- Recurring task metadata with natural-language and cron-like fields
+- Markdown/YAML advanced input for recurring tasks and not-to-dos
+- Completed task lookup by time range or keyword
+- Calendar event capture for today's meetings
 - Thought capture with optional tags
 - Activity/life log capture for things that happened outside the task list
 - Money record capture for income and expenses
@@ -105,10 +110,13 @@ http://127.0.0.1:8000/app/
 
 - `GET /` - health/status
 - `GET /daily/briefing` - today's briefing
-- `GET /tasks` - list tasks
+- `GET /tasks` - list tasks, optionally filtered by completion, context, completion range, or search
 - `POST /tasks` - create a task or not-to-do
 - `PATCH /tasks/{task_id}` - update a task
 - `POST /tasks/{task_id}/complete` - complete a task
+- `GET /calendar/sources` - list planned/available calendar sources
+- `GET /calendar/events` - list calendar events for a date
+- `POST /calendar/events` - create or import a calendar event
 - `GET /thoughts` - list thoughts
 - `POST /thoughts` - create a thought
 - `GET /activity-logs` - list activity/life logs

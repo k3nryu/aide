@@ -15,8 +15,15 @@ class TaskDB(Base):
     priority = Column(String(50), default="medium")
     importance = Column(String(50), default="medium")
     urgency = Column(String(50), default="medium")
+    context = Column(String(50), default="personal")  # personal / company
+    recurrence_natural = Column(Text)
+    recurrence_cron = Column(String(120))
+    recurrence_prepare_days = Column(Integer)
+    advanced_format = Column(String(50), default="markdown")  # markdown / yaml
+    advanced_body = Column(Text)
     done = Column(Boolean, default=False)
     due_date = Column(Date)
+    completed_at = Column(DateTime)
     created_at = Column(DateTime, default=datetime.utcnow)
 
 
@@ -37,6 +44,21 @@ class ActivityLogDB(Base):
     category = Column(String(100))
     note = Column(Text)
     occurred_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+
+class CalendarEventDB(Base):
+    __tablename__ = "calendar_events"
+
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String(255), nullable=False)
+    source = Column(String(50), default="manual")  # manual / google / apple / outlook
+    account_context = Column(String(50), default="personal")  # personal / company
+    starts_at = Column(DateTime, nullable=False)
+    ends_at = Column(DateTime)
+    location = Column(String(255))
+    description = Column(Text)
+    external_id = Column(String(255))
     created_at = Column(DateTime, default=datetime.utcnow)
 
 

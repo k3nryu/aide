@@ -303,6 +303,18 @@
         color: #fff;
       }
 
+      .filter-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: end;
+      }
+
+      .filter-row label {
+        min-width: 130px;
+        flex: 1;
+      }
+
       .asset-row {
         display: grid;
         grid-template-columns: 1fr 98px;
@@ -445,6 +457,15 @@
                     </select>
                   </label>
                   <label>
+                    分类
+                    <select id="task-context" name="context">
+                      <option value="personal">个人</option>
+                      <option value="company">公司</option>
+                    </select>
+                  </label>
+                </div>
+                <div class="row">
+                  <label>
                     重要度
                     <select id="task-importance" name="importance">
                       <option value="medium">普通</option>
@@ -466,6 +487,34 @@
                   截止日期
                   <input id="task-due-date" name="due_date" type="date" />
                 </label>
+                <label>
+                  定期任务
+                  <input id="task-recurrence-natural" name="recurrence_natural" placeholder="例：每年老婆生日提前半个月提醒" />
+                </label>
+                <div class="row">
+                  <label>
+                    高级规则
+                    <input id="task-recurrence-cron" name="recurrence_cron" placeholder="例：0 8 * * *" />
+                  </label>
+                  <label>
+                    提前几天变紧急
+                    <input id="task-recurrence-prepare-days" name="recurrence_prepare_days" type="number" min="0" max="365" placeholder="例：15" />
+                  </label>
+                </div>
+                <div class="meta">例：每天学单词、每周四和周六游泳、每半年更新定期券、每年老婆生日提前半个月提醒。</div>
+                <div class="row">
+                  <label>
+                    高级输入格式
+                    <select id="task-advanced-format" name="advanced_format">
+                      <option value="markdown">Markdown</option>
+                      <option value="yaml">YAML</option>
+                    </select>
+                  </label>
+                </div>
+                <label>
+                  高级输入
+                  <textarea id="task-advanced-body" name="advanced_body" placeholder="- 用 Markdown 写准备清单&#10;或用 YAML 写 structured fields"></textarea>
+                </label>
               </div>
             </details>
             <button type="submit">添加</button>
@@ -475,7 +524,94 @@
 
         <section>
           <h2>任务一览</h2>
+          <div class="filter-row">
+            <label>
+              分类
+              <select id="task-context-filter">
+                <option value="all">全部</option>
+                <option value="personal">个人</option>
+                <option value="company">公司</option>
+              </select>
+            </label>
+          </div>
           <div class="items" id="task-list"></div>
+        </section>
+
+        <section>
+          <h2>今日会议</h2>
+          <form id="calendar-event-form" onsubmit="return false">
+            <label>
+              会议
+              <input id="calendar-title" name="title" maxlength="255" required placeholder="例：项目同步会" />
+            </label>
+            <details>
+              <summary class="secondary">详细设置</summary>
+              <div class="detail-body">
+                <div class="row">
+                  <label>
+                    来源
+                    <select id="calendar-source">
+                      <option value="manual">手动</option>
+                      <option value="google">Google Calendar</option>
+                      <option value="apple">Apple Calendar</option>
+                      <option value="outlook">Outlook Calendar</option>
+                    </select>
+                  </label>
+                  <label>
+                    账户分类
+                    <select id="calendar-context">
+                      <option value="personal">个人</option>
+                      <option value="company">公司</option>
+                    </select>
+                  </label>
+                </div>
+                <div class="row">
+                  <label>
+                    开始
+                    <input id="calendar-start" type="datetime-local" required />
+                  </label>
+                  <label>
+                    结束
+                    <input id="calendar-end" type="datetime-local" />
+                  </label>
+                </div>
+                <label>
+                  地点
+                  <input id="calendar-location" maxlength="255" placeholder="可选" />
+                </label>
+                <label>
+                  备注
+                  <textarea id="calendar-description" placeholder="可选"></textarea>
+                </label>
+                <div class="meta" id="calendar-source-status">真实 Google / Apple / Outlook 同步需要后续配置账户授权；当前先支持同一结构的会议录入和导入接口。</div>
+              </div>
+            </details>
+            <button type="submit">加入今日会议</button>
+            <div class="status" id="calendar-status"></div>
+          </form>
+          <div class="items" id="calendar-list"></div>
+        </section>
+
+        <section>
+          <h2>已完成</h2>
+          <div class="filter-row">
+            <label>
+              时间范围
+              <select id="completed-range">
+                <option value="1d">过去 1 天</option>
+                <option value="3d">过去 3 天</option>
+                <option value="1w">过去 1 周</option>
+                <option value="1m">过去 1 个月</option>
+                <option value="1y">过去 1 年</option>
+                <option value="all">全部</option>
+              </select>
+            </label>
+            <label>
+              关键词
+              <input id="completed-search" placeholder="搜索已完成任务" />
+            </label>
+          </div>
+          <div class="items" id="completed-task-list"></div>
         </section>
 
         <section>
@@ -685,7 +821,14 @@
       const taskForm = document.querySelector("#task-form");
       const taskStatus = document.querySelector("#task-status");
       const taskList = document.querySelector("#task-list");
+      const taskContextFilter = document.querySelector("#task-context-filter");
       const notTodoList = document.querySelector("#not-todo-list");
+      const completedRange = document.querySelector("#completed-range");
+      const completedSearch = document.querySelector("#completed-search");
+      const completedTaskList = document.querySelector("#completed-task-list");
+      const calendarEventForm = document.querySelector("#calendar-event-form");
+      const calendarStatus = document.querySelector("#calendar-status");
+      const calendarList = document.querySelector("#calendar-list");
       const thoughtForm = document.querySelector("#thought-form");
       const thoughtStatus = document.querySelector("#thought-status");
       const thoughtList = document.querySelector("#thought-list");
@@ -693,6 +836,7 @@
       const financeStatus = document.querySelector("#finance-status");
       const briefing = document.querySelector("#briefing");
       const financeProfile = loadFinanceProfile();
+      let currentTasks = [];
       const exchangeRates = {
         ready: false,
         date: null,
@@ -947,40 +1091,60 @@
         return "普通";
       }
 
+      function labelPriority(value) {
+        if (value === "ultra") return "超高";
+        if (value === "high") return "高";
+        if (value === "low") return "低";
+        return "中";
+      }
+
+      function labelContext(value) {
+        return value === "company" ? "公司" : "个人";
+      }
+
       function evaluateTaskPriority(importance, urgency) {
-        if (importance === "high" && urgency !== "high") return "high";
+        if (importance === "high" && urgency !== "high") return "ultra";
         if (importance === "high" && urgency === "high") return "high";
         if (importance !== "high" && urgency === "high") return "medium";
         if (importance === "low" && urgency === "low") return "low";
         return "medium";
       }
 
-      function urgencyWithDueDate(urgency, dueDateValue, done = false) {
+      function urgencyWithDueDate(urgency, dueDateValue, done = false, prepareDaysValue = null) {
         if (urgency === "high") return "high";
         if (!dueDateValue || done) return urgency || "medium";
         const todayDate = new Date();
         todayDate.setHours(0, 0, 0, 0);
         const dueDate = new Date(`${dueDateValue}T00:00:00`);
+        const prepareDays = Number.isFinite(Number(prepareDaysValue)) ? Number(prepareDaysValue) : 3;
         const daysLeft = Math.ceil((dueDate - todayDate) / 86400000);
-        return daysLeft <= 3 ? "high" : urgency || "medium";
+        return daysLeft <= prepareDays ? "high" : urgency || "medium";
+      }
+
+      function importanceWithRecurrence(importance, recurrenceNatural, recurrenceCron) {
+        if ((recurrenceNatural || recurrenceCron) && importance === "medium") return "high";
+        return importance || "medium";
       }
 
       function effectiveUrgency(item) {
-        return urgencyWithDueDate(item.urgency || "medium", item.due_date, item.done);
+        return urgencyWithDueDate(item.urgency || "medium", item.due_date, item.done, item.recurrence_prepare_days);
       }
 
       function effectivePriority(item) {
-        return evaluateTaskPriority(item.importance || "medium", effectiveUrgency(item));
+        const importance = importanceWithRecurrence(item.importance || "medium", item.recurrence_natural, item.recurrence_cron);
+        return evaluateTaskPriority(importance, effectiveUrgency(item));
       }
 
       function priorityRank(value) {
+        if (value === "ultra") return 4;
         if (value === "high") return 3;
         if (value === "medium") return 2;
         return 1;
       }
 
       function taskSortValue(item) {
-        return priorityRank(effectivePriority(item)) * 100 + priorityRank(item.importance || "medium") * 10 + priorityRank(effectiveUrgency(item));
+        const importance = importanceWithRecurrence(item.importance || "medium", item.recurrence_natural, item.recurrence_cron);
+        return priorityRank(effectivePriority(item)) * 100 + priorityRank(importance) * 10 + priorityRank(effectiveUrgency(item));
       }
 
       function sortedTasks(items) {
@@ -995,14 +1159,20 @@
       }
 
       function updateTaskPriorityPreview() {
-        const importance = document.querySelector("#task-importance").value;
+        const importance = importanceWithRecurrence(
+          document.querySelector("#task-importance").value,
+          document.querySelector("#task-recurrence-natural").value.trim(),
+          document.querySelector("#task-recurrence-cron").value.trim(),
+        );
         const urgency = urgencyWithDueDate(
           document.querySelector("#task-urgency").value,
           document.querySelector("#task-due-date").value || null,
+          false,
+          document.querySelector("#task-recurrence-prepare-days").value || null,
         );
         const priority = evaluateTaskPriority(importance, urgency);
         document.querySelector("#task-priority-preview").textContent =
-          `Aide 评估优先级：${labelLevel(priority)}。判断依据：重要度 ${labelLevel(importance)}，紧急度 ${labelLevel(urgency)}。`;
+          `Aide 评估优先级：${labelPriority(priority)}。判断依据：重要度 ${labelLevel(importance)}，紧急度 ${labelLevel(urgency)}。`;
       }
 
       async function api(path, options = {}) {
@@ -1039,10 +1209,14 @@
 
       function renderTasks(items) {
         taskList.innerHTML = "";
-        const todos = sortedTasks(items.filter((item) => item.type !== "not_todo"));
+        const selectedContext = taskContextFilter.value;
+        const todos = sortedTasks(
+          items.filter((item) => item.type !== "not_todo" && !item.done && (selectedContext === "all" || item.context === selectedContext)),
+        );
         if (!todos.length) {
           taskList.innerHTML = '<div class="empty">还没有任务</div>';
           renderNotTodos(items);
+          renderCompletedTasks(items);
           return;
         }
         for (const item of todos.slice(0, 12)) {
@@ -1050,28 +1224,47 @@
           node.className = "item";
           const urgency = effectiveUrgency(item);
           const priority = effectivePriority(item);
+          const importance = importanceWithRecurrence(item.importance || "medium", item.recurrence_natural, item.recurrence_cron);
           node.innerHTML = `
             <summary class="summary-row">
               <span class="item-title">${escapeHtml(item.title)}</span>
-              <span class="pill">${escapeHtml(labelLevel(priority))}</span>
+              <span class="pill">${escapeHtml(labelPriority(priority))}</span>
             </summary>
             <div class="detail-body">
               ${item.description ? `<div class="meta">${escapeHtml(item.description)}</div>` : ""}
               <div class="meta">
-                <span class="pill">重要度：${escapeHtml(labelLevel(item.importance))}</span>
+                <span class="pill">${escapeHtml(labelContext(item.context))}</span>
+                <span class="pill">重要度：${escapeHtml(labelLevel(importance))}</span>
                 <span class="pill">紧急度：${escapeHtml(labelLevel(urgency))}</span>
                 ${urgency !== item.urgency ? '<span class="pill">截止日临近</span>' : ""}
+                ${item.recurrence_natural || item.recurrence_cron ? '<span class="pill">定期</span>' : ""}
                 ${item.due_date ? escapeHtml(item.due_date) : "无截止日期"}
                 ${item.done ? " · done" : ""}
               </div>
+              ${item.recurrence_natural ? `<div class="meta">定期：${escapeHtml(item.recurrence_natural)}</div>` : ""}
+              ${item.recurrence_cron ? `<div class="meta">高级规则：${escapeHtml(item.recurrence_cron)}</div>` : ""}
+              ${item.advanced_body ? `<div class="meta">高级输入（${escapeHtml(item.advanced_format || "markdown")}）：${escapeHtml(item.advanced_body)}</div>` : ""}
               <form class="task-edit-form" data-task-id="${item.id}" onsubmit="return false">
                 <label>任务<input name="title" value="${escapeAttribute(item.title)}" required /></label>
                 <label>描述<textarea name="description">${escapeHtml(item.description || "")}</textarea></label>
+                <div class="row">
+                  <label>分类${selectHtml("context", item.context || "personal", [["personal", "个人"], ["company", "公司"]])}</label>
+                  <label>类型${selectHtml("type", item.type || "todo", [["todo", "todo"], ["not_todo", "not-to-do"]])}</label>
+                </div>
                 <div class="row">
                   <label>重要度${selectHtml("importance", item.importance || "medium", [["medium", "普通"], ["high", "重要"], ["low", "不重要"]])}</label>
                   <label>紧急度${selectHtml("urgency", item.urgency || "medium", [["medium", "普通"], ["high", "紧急"], ["low", "不紧急"]])}</label>
                 </div>
                 <label>截止日期<input name="due_date" type="date" value="${escapeAttribute(item.due_date || "")}" /></label>
+                <label>定期任务<input name="recurrence_natural" value="${escapeAttribute(item.recurrence_natural || "")}" /></label>
+                <div class="row">
+                  <label>高级规则<input name="recurrence_cron" value="${escapeAttribute(item.recurrence_cron || "")}" /></label>
+                  <label>提前几天变紧急<input name="recurrence_prepare_days" type="number" min="0" max="365" value="${escapeAttribute(item.recurrence_prepare_days || "")}" /></label>
+                </div>
+                <div class="row">
+                  <label>高级输入格式${selectHtml("advanced_format", item.advanced_format || "markdown", [["markdown", "Markdown"], ["yaml", "YAML"]])}</label>
+                </div>
+                <label>高级输入<textarea name="advanced_body">${escapeHtml(item.advanced_body || "")}</textarea></label>
                 <button type="submit">保存修改</button>
                 <div class="status"></div>
               </form>
@@ -1091,10 +1284,11 @@
           });
         }
         renderNotTodos(items);
+        renderCompletedTasks(items);
       }
 
       function renderNotTodos(items) {
-        const notTodos = sortedTasks(items.filter((item) => item.type === "not_todo"));
+        const notTodos = sortedTasks(items.filter((item) => item.type === "not_todo" && !item.done));
         notTodoList.innerHTML = "";
         if (!notTodos.length) {
           notTodoList.innerHTML = '<div class="empty">还没有 not-to-do</div>';
@@ -1107,13 +1301,80 @@
             <div class="item-title">${escapeHtml(item.title)}</div>
             ${item.description ? `<div class="meta">${escapeHtml(item.description)}</div>` : ""}
             <div class="meta">
-              <span class="pill">${escapeHtml(item.priority)}</span>
+              <span class="pill">${escapeHtml(labelPriority(item.priority))}</span>
               <span class="pill">重要度：${escapeHtml(labelLevel(item.importance))}</span>
               <span class="pill">紧急度：${escapeHtml(labelLevel(item.urgency))}</span>
               ${item.due_date ? escapeHtml(item.due_date) : "无截止日期"}
             </div>
+            ${item.advanced_body ? `<div class="meta">高级输入（${escapeHtml(item.advanced_format || "markdown")}）：${escapeHtml(item.advanced_body)}</div>` : ""}
           `;
           notTodoList.appendChild(node);
+        }
+      }
+
+      function isCompletedInRange(item, rangeName) {
+        if (rangeName === "all") return true;
+        const completedAt = new Date(item.completed_at || item.created_at);
+        const now = new Date();
+        const ranges = {
+          "1d": 1,
+          "3d": 3,
+          "1w": 7,
+          "1m": 31,
+          "1y": 365,
+        };
+        const days = ranges[rangeName] || 1;
+        return completedAt >= new Date(now.getTime() - days * 86400000);
+      }
+
+      function renderCompletedTasks(items) {
+        completedTaskList.innerHTML = "";
+        const keyword = completedSearch.value.trim().toLowerCase();
+        const rangeName = completedRange.value;
+        const completed = items
+          .filter((item) => item.done && item.type !== "not_todo")
+          .filter((item) => isCompletedInRange(item, rangeName))
+          .filter((item) => !keyword || `${item.title} ${item.description || ""}`.toLowerCase().includes(keyword))
+          .sort((a, b) => new Date(b.completed_at || b.created_at) - new Date(a.completed_at || a.created_at));
+        if (!completed.length) {
+          completedTaskList.innerHTML = '<div class="empty">没有找到已完成任务</div>';
+          return;
+        }
+        for (const item of completed.slice(0, 20)) {
+          const node = document.createElement("div");
+          node.className = "item";
+          node.innerHTML = `
+            <div class="item-title">${escapeHtml(item.title)}</div>
+            <div class="meta">
+              <span class="pill">${escapeHtml(labelContext(item.context))}</span>
+              ${formatDateTime(item.completed_at || item.created_at)}
+            </div>
+            ${item.description ? `<div class="meta">${escapeHtml(item.description)}</div>` : ""}
+          `;
+          completedTaskList.appendChild(node);
+        }
+      }
+
+      function renderCalendarEvents(items) {
+        calendarList.innerHTML = "";
+        if (!items.length) {
+          calendarList.innerHTML = '<div class="empty">今天还没有会议</div>';
+          return;
+        }
+        for (const item of items.slice(0, 12)) {
+          const node = document.createElement("div");
+          node.className = "item";
+          node.innerHTML = `
+            <div class="item-title">${escapeHtml(item.title)}</div>
+            <div class="meta">
+              <span class="pill">${escapeHtml(labelContext(item.account_context))}</span>
+              <span class="pill">${escapeHtml(item.source || "manual")}</span>
+              ${formatDateTime(item.starts_at)}${item.ends_at ? ` - ${formatDateTime(item.ends_at)}` : ""}
+            </div>
+            ${item.location ? `<div class="meta">${escapeHtml(item.location)}</div>` : ""}
+            ${item.description ? `<div class="meta">${escapeHtml(item.description)}</div>` : ""}
+          `;
+          calendarList.appendChild(node);
         }
       }
 
@@ -1187,12 +1448,19 @@
       function renderBriefing(data) {
         const tasks = data.tasks || [];
         const notTodos = data.not_todos || [];
+        const meetings = data.meetings || [];
         briefing.innerHTML = `
           <div class="item">
             <div class="item-title">${escapeHtml(data.message || "Today's briefing from Aide.")}</div>
             <div class="meta">${escapeHtml(data.date || "")}</div>
           </div>
         `;
+        for (const item of meetings.slice(0, 5)) {
+          const node = document.createElement("details");
+          node.className = "item";
+          node.innerHTML = meetingReport(item);
+          briefing.appendChild(node);
+        }
         for (const item of tasks.slice(0, 5)) {
           const node = document.createElement("details");
           node.className = "item";
@@ -1220,7 +1488,27 @@
               ${reportLine("Who", "我")}
               ${reportLine("When", item.due_date || "今天 / 未指定截止日期")}
               ${reportLine("Where", "未指定")}
-              ${reportLine("How", `优先级：${labelLevel(item.priority)}，重要度：${labelLevel(item.importance)}，紧急度：${labelLevel(item.urgency)}`)}
+              ${reportLine("How", `优先级：${labelPriority(item.priority)}，重要度：${labelLevel(item.importance)}，紧急度：${labelLevel(item.urgency)}`)}
+              ${reportLine("How much", "未指定")}
+            </div>
+          </div>
+        `;
+      }
+
+      function meetingReport(item) {
+        return `
+          <summary class="summary-row">
+            <span class="item-title">${escapeHtml(item.title)}</span>
+            <span class="pill">会议</span>
+          </summary>
+          <div class="detail-body">
+            <div class="report-grid">
+              ${reportLine("What", item.title)}
+              ${reportLine("Why", item.description || "当天会议，需要准备、参加或会后跟进")}
+              ${reportLine("Who", labelContext(item.account_context))}
+              ${reportLine("When", `${formatDateTime(item.starts_at)}${item.ends_at ? ` - ${formatDateTime(item.ends_at)}` : ""}`)}
+              ${reportLine("Where", item.location || "未指定")}
+              ${reportLine("How", `来源：${item.source || "manual"}`)}
               ${reportLine("How much", "未指定")}
             </div>
           </div>
@@ -1245,16 +1533,27 @@
             event.preventDefault();
             const status = form.querySelector(".status");
             setStatus(status, "保存中...");
-            const importance = form.elements.importance.value;
+            const recurrenceNatural = form.elements.recurrence_natural.value.trim();
+            const recurrenceCron = form.elements.recurrence_cron.value.trim();
+            const prepareDays = form.elements.recurrence_prepare_days.value;
+            const advancedBody = form.elements.advanced_body.value.trim();
+            const importance = importanceWithRecurrence(form.elements.importance.value, recurrenceNatural, recurrenceCron);
             const dueDate = form.elements.due_date.value || null;
-            const urgency = urgencyWithDueDate(form.elements.urgency.value, dueDate);
+            const urgency = urgencyWithDueDate(form.elements.urgency.value, dueDate, false, prepareDays || null);
             const payload = {
               title: form.elements.title.value.trim(),
               description: form.elements.description.value.trim() || null,
+              type: form.elements.type.value,
+              context: form.elements.context.value,
               importance,
               urgency,
               priority: evaluateTaskPriority(importance, urgency),
               due_date: dueDate,
+              recurrence_natural: recurrenceNatural || null,
+              recurrence_cron: recurrenceCron || null,
+              recurrence_prepare_days: prepareDays ? Number(prepareDays) : null,
+              advanced_format: form.elements.advanced_format.value,
+              advanced_body: advancedBody || null,
             };
             try {
               await api(`/tasks/${form.getAttribute("data-task-id")}`, {
@@ -1287,6 +1586,9 @@
         document.querySelector("#task-importance").addEventListener("change", updateTaskPriorityPreview);
         document.querySelector("#task-urgency").addEventListener("change", updateTaskPriorityPreview);
         document.querySelector("#task-due-date").addEventListener("change", updateTaskPriorityPreview);
+        document.querySelector("#task-recurrence-natural").addEventListener("input", updateTaskPriorityPreview);
+        document.querySelector("#task-recurrence-cron").addEventListener("input", updateTaskPriorityPreview);
+        document.querySelector("#task-recurrence-prepare-days").addEventListener("input", updateTaskPriorityPreview);
         updateTaskPriorityPreview();
       }
 
@@ -1304,15 +1606,18 @@
       }
 
       async function refresh() {
-        const [activities, tasks, thoughts, money, daily] = await Promise.all([
+        const [activities, tasks, thoughts, money, daily, calendarEvents] = await Promise.all([
           api("/activity-logs"),
           api("/tasks"),
           api("/thoughts"),
           api("/money"),
           api("/daily/briefing"),
+          api("/calendar/events"),
         ]);
+        currentTasks = tasks;
         renderActivity(activities);
         renderTasks(tasks);
+        renderCalendarEvents(calendarEvents);
         renderThoughts(thoughts);
         renderStats(tasks, activities, money);
         renderFinanceProfile();
@@ -1342,17 +1647,27 @@
         event.preventDefault();
         setStatus(taskStatus, "保存中...");
         const descriptionInput = document.querySelector("#task-description");
-        const importance = document.querySelector("#task-importance").value;
+        const recurrenceNatural = document.querySelector("#task-recurrence-natural").value.trim();
+        const recurrenceCron = document.querySelector("#task-recurrence-cron").value.trim();
+        const prepareDays = document.querySelector("#task-recurrence-prepare-days").value;
+        const advancedBody = document.querySelector("#task-advanced-body").value.trim();
+        const importance = importanceWithRecurrence(document.querySelector("#task-importance").value, recurrenceNatural, recurrenceCron);
         const dueDate = document.querySelector("#task-due-date").value || null;
-        const urgency = urgencyWithDueDate(document.querySelector("#task-urgency").value, dueDate);
+        const urgency = urgencyWithDueDate(document.querySelector("#task-urgency").value, dueDate, false, prepareDays || null);
         const payload = {
           title: document.querySelector("#task-title").value.trim(),
           description: descriptionInput ? descriptionInput.value.trim() || null : null,
           type: document.querySelector("#task-type").value,
+          context: document.querySelector("#task-context").value,
           priority: evaluateTaskPriority(importance, urgency),
           importance,
           urgency,
           due_date: dueDate,
+          recurrence_natural: recurrenceNatural || null,
+          recurrence_cron: recurrenceCron || null,
+          recurrence_prepare_days: prepareDays ? Number(prepareDays) : null,
+          advanced_format: document.querySelector("#task-advanced-format").value,
+          advanced_body: advancedBody || null,
         };
         try {
           await api("/tasks", { method: "POST", body: JSON.stringify(payload) });
@@ -1361,6 +1676,40 @@
           await refresh();
         } catch (error) {
           setStatus(taskStatus, "保存失败", true);
+        }
+      });
+
+      taskContextFilter.addEventListener("change", () => {
+        renderTasks(currentTasks);
+      });
+
+      completedRange.addEventListener("change", () => {
+        renderCompletedTasks(currentTasks);
+      });
+
+      completedSearch.addEventListener("input", () => {
+        renderCompletedTasks(currentTasks);
+      });
+
+      calendarEventForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        setStatus(calendarStatus, "保存中...");
+        const payload = {
+          title: document.querySelector("#calendar-title").value.trim(),
+          source: document.querySelector("#calendar-source").value,
+          account_context: document.querySelector("#calendar-context").value,
+          starts_at: localDateTimeValue(document.querySelector("#calendar-start").value),
+          ends_at: localDateTimeValue(document.querySelector("#calendar-end").value),
+          location: document.querySelector("#calendar-location").value.trim() || null,
+          description: document.querySelector("#calendar-description").value.trim() || null,
+        };
+        try {
+          await api("/calendar/events", { method: "POST", body: JSON.stringify(payload) });
+          calendarEventForm.reset();
+          setStatus(calendarStatus, "已加入");
+          await refresh();
+        } catch (error) {
+          setStatus(calendarStatus, "保存失败", true);
         }
       });
 
