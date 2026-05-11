@@ -239,6 +239,28 @@
         font-size: 12px;
       }
 
+      .outcome-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 10px;
+      }
+
+      .outcome-form textarea {
+        min-height: 64px;
+      }
+
+      .completed-divider {
+        border-top: 1px solid var(--line);
+        padding-top: 10px;
+        margin-top: 4px;
+      }
+
+      .completed-todo .item-title {
+        text-decoration: line-through;
+        color: var(--muted);
+      }
+
       .item {
         border: 1px solid var(--line);
         border-radius: 8px;
@@ -323,14 +345,38 @@
 
       .filter-row {
         display: flex;
-        flex-wrap: wrap;
-        gap: 8px;
-        align-items: end;
+        flex-wrap: nowrap;
+        gap: 6px;
+        align-items: center;
+        overflow-x: auto;
       }
 
       .filter-row label {
-        min-width: 130px;
-        flex: 1;
+        min-width: 0;
+        flex: 0 0 auto;
+      }
+
+      .filter-checkbox {
+        min-width: 0;
+        flex: 0 0 auto;
+        display: inline-flex;
+        grid-template-columns: none;
+        align-items: center;
+        gap: 4px;
+        padding: 5px 7px;
+        border: 1px solid var(--line);
+        border-radius: 7px;
+        background: #fff;
+        color: var(--ink);
+        font-size: 12px;
+        line-height: 1.1;
+        white-space: nowrap;
+      }
+
+      .filter-checkbox input {
+        width: 13px;
+        height: 13px;
+        margin: 0;
       }
 
       .asset-row {
@@ -440,28 +486,25 @@
 
       <div class="page active" data-page-panel="today">
         <section>
-          <h2>今日简报</h2>
+          <h2>今日 To-Do</h2>
           <div class="items" id="briefing"></div>
         </section>
 
         <section>
-          <h2>状态概览</h2>
+          <h2>今后 To-Do</h2>
+          <div class="items" id="schedule-list"></div>
+        </section>
+
+        <section>
+          <h2>今日简报</h2>
           <div class="stats">
             <div class="stat">
               <span class="stat-value" id="stat-open-tasks">0</span>
-              <span class="stat-label">未完成任务</span>
+              <span class="stat-label">今日未完成 To-Do</span>
             </div>
             <div class="stat">
-              <span class="stat-value" id="stat-not-todos">0</span>
-              <span class="stat-label">Not-to-do</span>
-            </div>
-            <div class="stat">
-              <span class="stat-value" id="stat-activities">0</span>
-              <span class="stat-label">行为记录</span>
-            </div>
-            <div class="stat">
-              <span class="stat-value" id="stat-net">0</span>
-              <span class="stat-label">财务自由差距</span>
+              <span class="stat-value" id="stat-fi-duration">0天</span>
+              <span class="stat-label" id="stat-fi-summary">请先设置财务自由参数。</span>
             </div>
           </div>
         </section>
@@ -469,82 +512,302 @@
 
       <div class="page" data-page-panel="tasks">
         <section>
-          <h2>任务添加</h2>
+          <h2>任务/会议添加</h2>
           <form id="task-form" onsubmit="return false">
             <label>
-              任务
-              <input id="task-title" name="title" maxlength="255" required placeholder="例：今天学习 20 个单词" />
+              内容
+              <input id="task-title" name="title" maxlength="255" required placeholder="例：今天学习 20 个单词 / 项目同步会" />
             </label>
             <details>
               <summary class="secondary">详细设置</summary>
               <div class="detail-body">
                 <label>
+                  添加类型
+                  <select id="task-entry-type">
+                    <option value="task">任务</option>
+                    <option value="meeting">会议</option>
+                  </select>
+                </label>
+                <label>
                   描述
                   <textarea id="task-description" name="description" placeholder="可选"></textarea>
                 </label>
-                <label>
-                  分类
-                  <select id="task-context" name="context">
-                    <option value="personal">个人</option>
-                    <option value="company">公司</option>
-                  </select>
-                </label>
-                <label>
-                  重要度
-                  <select id="task-importance" name="importance">
-                    <option value="medium">普通</option>
-                    <option value="high">重要</option>
-                    <option value="low">不重要</option>
-                  </select>
-                </label>
-                <div class="meta" id="task-priority-preview">Aide 会根据重要度和紧急度自动评估优先级。</div>
-                <label>
-                  截止日期
-                  <input id="task-due-date" name="due_date" type="date" />
-                </label>
-                <label class="checkbox-row">
-                  <input id="task-is-recurring" type="checkbox" />
-                  这是定期任务
-                </label>
-                <div class="detail-body" id="task-recurrence-fields" hidden>
-                  <div class="row">
-                    <label>
-                      频率
-                      <select id="task-recurrence-frequency">
-                        <option value="daily">每天</option>
-                        <option value="weekly">每周</option>
-                        <option value="monthly">每月</option>
-                        <option value="yearly">每年</option>
-                      </select>
-                    </label>
-                    <label>
-                      历法
-                      <select id="task-recurrence-calendar">
-                        <option value="solar">国历</option>
-                        <option value="lunar">农历</option>
-                      </select>
-                    </label>
-                  </div>
-                  <div class="row">
-                    <label>
-                      月
-                      <input id="task-recurrence-month" type="number" min="1" max="12" placeholder="每年时填写" />
-                    </label>
-                    <label>
-                      日
-                      <input id="task-recurrence-day" type="number" min="1" max="31" placeholder="每月/每年时填写" />
-                    </label>
-                  </div>
+                <div id="task-fields">
                   <label>
-                    星期
-                    <input id="task-recurrence-weekdays" placeholder="例：周四、周六" />
+                    分类
+                    <select id="task-context" name="context">
+                      <option value="personal">个人</option>
+                      <option value="company" selected>公司</option>
+                    </select>
                   </label>
                   <label>
-                    自然语言
-                    <input id="task-recurrence-natural" name="recurrence_natural" placeholder="例：每年农历八月十二老婆生日" />
+                    重要度
+                    <select id="task-importance" name="importance">
+                      <option value="medium">普通</option>
+                      <option value="high">重要</option>
+                      <option value="low">不重要</option>
+                    </select>
                   </label>
+                  <div class="meta" id="task-priority-preview">Aide 会根据重要度和紧急度自动评估优先级。</div>
+                  <label>
+                    截止日期
+                    <input id="task-due-date" name="due_date" type="date" />
+                  </label>
+                  <label class="checkbox-row">
+                    <input id="task-is-recurring" type="checkbox" />
+                    这是定期任务
+                  </label>
+                  <div class="detail-body" id="task-recurrence-fields" hidden>
+                    <div class="meta">定期规则</div>
+                    <div class="row">
+                      <label>
+                        周期
+                        <select id="task-recurrence-frequency">
+                          <option value="daily">每天</option>
+                          <option value="weekly">每周</option>
+                          <option value="monthly">每月</option>
+                          <option value="yearly">每年</option>
+                        </select>
+                      </label>
+                      <label>
+                        间隔
+                        <input id="task-recurrence-interval" type="number" min="1" value="1" />
+                      </label>
+                      <label>
+                        历法
+                        <select id="task-recurrence-calendar">
+                          <option value="solar">国历</option>
+                          <option value="lunar">农历</option>
+                        </select>
+                      </label>
+                    </div>
+                    <div class="row">
+                      <label>
+                        开始日期
+                        <input id="task-recurrence-start-date" type="date" />
+                      </label>
+                      <label>
+                        结束日期
+                        <input id="task-recurrence-end-date" type="date" />
+                      </label>
+                    </div>
+                    <div class="checkbox-row">
+                      <span class="meta">排除</span>
+                      <label class="checkbox-row"><input name="task-recurrence-exclude" type="checkbox" value="jp_business_day" />日本平日</label>
+                      <label class="checkbox-row"><input name="task-recurrence-exclude" type="checkbox" value="cn_business_day" />中国平日</label>
+                    </div>
+                    <div class="checkbox-row" id="task-recurrence-weekly-fields">
+                      <span class="meta">每周</span>
+                      <label class="checkbox-row"><input name="task-recurrence-weekday" type="checkbox" value="1" />周一</label>
+                      <label class="checkbox-row"><input name="task-recurrence-weekday" type="checkbox" value="2" />周二</label>
+                      <label class="checkbox-row"><input name="task-recurrence-weekday" type="checkbox" value="3" />周三</label>
+                      <label class="checkbox-row"><input name="task-recurrence-weekday" type="checkbox" value="4" />周四</label>
+                      <label class="checkbox-row"><input name="task-recurrence-weekday" type="checkbox" value="5" />周五</label>
+                      <label class="checkbox-row"><input name="task-recurrence-weekday" type="checkbox" value="6" />周六</label>
+                      <label class="checkbox-row"><input name="task-recurrence-weekday" type="checkbox" value="0" />周日</label>
+                    </div>
+                    <div class="row" id="task-recurrence-nth-fields">
+                      <label>
+                        每月模式
+                        <select id="task-recurrence-monthly-mode">
+                          <option value="day_of_month">按日期</option>
+                          <option value="nth_weekday">第几个星期几</option>
+                        </select>
+                      </label>
+                      <label>
+                        第几个
+                        <select id="task-recurrence-nth">
+                          <option value="1">第1个</option>
+                          <option value="2">第2个</option>
+                          <option value="3">第3个</option>
+                          <option value="4">第4个</option>
+                          <option value="-1">最后一个</option>
+                        </select>
+                      </label>
+                      <label>
+                        星期
+                        <select id="task-recurrence-nth-weekday">
+                          <option value="1">周一</option>
+                          <option value="2">周二</option>
+                          <option value="3">周三</option>
+                          <option value="4">周四</option>
+                          <option value="5">周五</option>
+                          <option value="6">周六</option>
+                          <option value="0">周日</option>
+                        </select>
+                      </label>
+                    </div>
+                    <div class="row" id="task-recurrence-date-fields">
+                      <label>
+                        每年指定月
+                        <input id="task-recurrence-month" type="number" min="1" max="12" placeholder="每年时填写" />
+                      </label>
+                      <label>
+                        指定日
+                        <input id="task-recurrence-day" type="number" min="1" max="31" placeholder="每月/每年时填写" />
+                      </label>
+                    </div>
+                    <label>
+                      规则备注
+                      <input id="task-recurrence-natural" name="recurrence_natural" placeholder="例：老婆生日准备 / 定期券更新" />
+                    </label>
+                  </div>
+                  <div class="meta">Aide 会根据截止日期、频率和上下文自动评估紧急程度。</div>
                 </div>
-                <div class="meta">Aide 会根据截止日期、频率和上下文自动评估紧急程度。</div>
+                <div id="meeting-fields" hidden>
+                  <div class="row">
+                    <label>
+                      来源
+                      <select id="calendar-source">
+                        <option value="manual">手动</option>
+                        <option value="google">Google Calendar</option>
+                        <option value="apple">Apple Calendar</option>
+                        <option value="outlook">Outlook Calendar</option>
+                      </select>
+                    </label>
+                    <label>
+                      账户分类
+                      <select id="calendar-context">
+                        <option value="personal">个人</option>
+                        <option value="company" selected>公司</option>
+                      </select>
+                    </label>
+                  </div>
+                  <label>
+                    重要度
+                    <select id="calendar-importance">
+                      <option value="high">重要</option>
+                      <option value="medium">普通</option>
+                      <option value="low">不重要</option>
+                    </select>
+                  </label>
+                  <div class="row">
+                    <label>
+                      开始
+                      <input id="calendar-start" type="datetime-local" />
+                    </label>
+                    <label>
+                      结束
+                      <input id="calendar-end" type="datetime-local" />
+                    </label>
+                  </div>
+                  <label>
+                    地点
+                    <input id="calendar-location" maxlength="255" placeholder="可选" />
+                  </label>
+                  <label class="checkbox-row">
+                    <input id="calendar-is-recurring" type="checkbox" />
+                    这是定期会议
+                  </label>
+                  <div class="detail-body" id="calendar-recurrence-fields" hidden>
+                    <div class="meta">必填</div>
+                    <div class="row">
+                      <label>
+                        开始时刻
+                        <input id="calendar-recurrence-start-time" type="time" />
+                      </label>
+                      <label>
+                        结束时刻
+                        <select id="calendar-recurrence-duration">
+                          <option value="30">开始 + 30m</option>
+                          <option value="60" selected>开始 + 60m</option>
+                          <option value="90">开始 + 90m</option>
+                          <option value="120">开始 + 120m</option>
+                        </select>
+                      </label>
+                    </div>
+                    <div class="checkbox-row">
+                      <span class="meta">排除</span>
+                      <label class="checkbox-row"><input name="calendar-recurrence-exclude" type="checkbox" value="jp_business_day" />日本平日</label>
+                      <label class="checkbox-row"><input name="calendar-recurrence-exclude" type="checkbox" value="cn_business_day" />中国平日</label>
+                    </div>
+                    <div class="meta">重复模式</div>
+                    <div class="row">
+                      <label>
+                        重复周期
+                        <select id="calendar-recurrence-frequency">
+                          <option value="daily">每天</option>
+                          <option value="weekly">每周</option>
+                          <option value="monthly">每月</option>
+                          <option value="yearly">每年</option>
+                        </select>
+                      </label>
+                      <label>
+                        间隔
+                        <input id="calendar-recurrence-interval" type="number" min="1" value="1" />
+                      </label>
+                    </div>
+                    <div class="row">
+                      <label>
+                        开始日期
+                        <input id="calendar-recurrence-start-date" type="date" />
+                      </label>
+                      <label>
+                        结束日期
+                        <input id="calendar-recurrence-end-date" type="date" />
+                      </label>
+                    </div>
+                    <div id="calendar-recurrence-weekly-fields">
+                      每周重复日
+                      <div class="checkbox-row">
+                        <label class="checkbox-row"><input name="calendar-recurrence-weekday" type="checkbox" value="1" />周一</label>
+                        <label class="checkbox-row"><input name="calendar-recurrence-weekday" type="checkbox" value="2" />周二</label>
+                        <label class="checkbox-row"><input name="calendar-recurrence-weekday" type="checkbox" value="3" />周三</label>
+                        <label class="checkbox-row"><input name="calendar-recurrence-weekday" type="checkbox" value="4" />周四</label>
+                        <label class="checkbox-row"><input name="calendar-recurrence-weekday" type="checkbox" value="5" />周五</label>
+                        <label class="checkbox-row"><input name="calendar-recurrence-weekday" type="checkbox" value="6" />周六</label>
+                        <label class="checkbox-row"><input name="calendar-recurrence-weekday" type="checkbox" value="0" />周日</label>
+                      </div>
+                    </div>
+                    <div class="row" id="calendar-recurrence-nth-fields">
+                      <label>
+                        每月模式
+                        <select id="calendar-recurrence-monthly-mode">
+                          <option value="day_of_month">按日期</option>
+                          <option value="nth_weekday">第几个星期几</option>
+                        </select>
+                      </label>
+                      <label>
+                        第几个
+                        <select id="calendar-recurrence-nth">
+                          <option value="1">第1个</option>
+                          <option value="2">第2个</option>
+                          <option value="3">第3个</option>
+                          <option value="4">第4个</option>
+                          <option value="-1">最后一个</option>
+                        </select>
+                      </label>
+                      <label>
+                        星期
+                        <select id="calendar-recurrence-nth-weekday">
+                          <option value="1">周一</option>
+                          <option value="2">周二</option>
+                          <option value="3">周三</option>
+                          <option value="4">周四</option>
+                          <option value="5">周五</option>
+                          <option value="6">周六</option>
+                          <option value="0">周日</option>
+                        </select>
+                      </label>
+                    </div>
+                    <div class="row" id="calendar-recurrence-date-fields">
+                      <label>
+                        每年重复月
+                        <input id="calendar-recurrence-month" type="number" min="1" max="12" placeholder="每年时填写" />
+                      </label>
+                      <label>
+                        每月/每年重复日
+                        <input id="calendar-recurrence-day" type="number" min="1" max="31" placeholder="每月/每年时填写" />
+                      </label>
+                    </div>
+                    <div class="meta">重复范围</div>
+                    <label>
+                      结束条件 / 备注
+                      <input id="calendar-recurrence-natural" placeholder="例：无结束日期 / 项目例会" />
+                    </label>
+                  </div>
+                  <div class="meta" id="calendar-source-status">真实 Google / Apple / Outlook 同步需要后续配置账户授权；当前先支持同一结构的会议录入和导入接口。</div>
+                </div>
               </div>
             </details>
             <button type="submit">添加</button>
@@ -555,75 +818,28 @@
         <section>
           <h2>任务一览</h2>
           <div class="filter-row">
-            <label>
-              分类
-              <select id="task-context-filter">
-                <option value="all">全部</option>
-                <option value="personal">个人</option>
-                <option value="company">公司</option>
-              </select>
+            <label class="filter-checkbox">
+              <input type="checkbox" name="task-filter-context" value="personal" checked />
+              个人
+            </label>
+            <label class="filter-checkbox">
+              <input type="checkbox" name="task-filter-context" value="company" checked />
+              公司
+            </label>
+            <label class="filter-checkbox">
+              <input type="checkbox" name="task-filter-kind" value="one_time" checked />
+              非定期
+            </label>
+            <label class="filter-checkbox">
+              <input type="checkbox" name="task-filter-kind" value="recurring" checked />
+              定期
             </label>
           </div>
           <div class="items" id="task-list"></div>
         </section>
 
         <section>
-          <h2>今日会议</h2>
-          <form id="calendar-event-form" onsubmit="return false">
-            <label>
-              会议
-              <input id="calendar-title" name="title" maxlength="255" required placeholder="例：项目同步会" />
-            </label>
-            <details>
-              <summary class="secondary">详细设置</summary>
-              <div class="detail-body">
-                <div class="row">
-                  <label>
-                    来源
-                    <select id="calendar-source">
-                      <option value="manual">手动</option>
-                      <option value="google">Google Calendar</option>
-                      <option value="apple">Apple Calendar</option>
-                      <option value="outlook">Outlook Calendar</option>
-                    </select>
-                  </label>
-                  <label>
-                    账户分类
-                    <select id="calendar-context">
-                      <option value="personal">个人</option>
-                      <option value="company">公司</option>
-                    </select>
-                  </label>
-                </div>
-                <div class="row">
-                  <label>
-                    开始
-                    <input id="calendar-start" type="datetime-local" required />
-                  </label>
-                  <label>
-                    结束
-                    <input id="calendar-end" type="datetime-local" />
-                  </label>
-                </div>
-                <label>
-                  地点
-                  <input id="calendar-location" maxlength="255" placeholder="可选" />
-                </label>
-                <label>
-                  备注
-                  <textarea id="calendar-description" placeholder="可选"></textarea>
-                </label>
-                <div class="meta" id="calendar-source-status">真实 Google / Apple / Outlook 同步需要后续配置账户授权；当前先支持同一结构的会议录入和导入接口。</div>
-              </div>
-            </details>
-            <button type="submit">加入今日会议</button>
-            <div class="status" id="calendar-status"></div>
-          </form>
-          <div class="items" id="calendar-list"></div>
-        </section>
-
-        <section>
-          <h2>已完成</h2>
+          <h2>已完成/已参加</h2>
           <div class="filter-row">
             <label>
               时间范围
@@ -638,7 +854,7 @@
             </label>
             <label>
               关键词
-              <input id="completed-search" placeholder="搜索已完成任务" />
+              <input id="completed-search" placeholder="搜索已完成/已参加" />
             </label>
           </div>
           <div class="items" id="completed-task-list"></div>
@@ -715,6 +931,13 @@
         <section>
           <h2>最近行为</h2>
           <div class="items" id="activity-list"></div>
+        </section>
+
+        <section>
+          <h2>AI 复盘</h2>
+          <button class="secondary" id="activity-analysis-button" type="button">生成 PDCA / STOW 分析</button>
+          <div class="status" id="activity-analysis-status"></div>
+          <div class="items" id="activity-analysis"></div>
         </section>
       </div>
 
@@ -937,19 +1160,22 @@
       const activityForm = document.querySelector("#activity-form");
       const activityStatus = document.querySelector("#activity-status");
       const activityList = document.querySelector("#activity-list");
+      const activityAnalysisButton = document.querySelector("#activity-analysis-button");
+      const activityAnalysisStatus = document.querySelector("#activity-analysis-status");
+      const activityAnalysis = document.querySelector("#activity-analysis");
       const taskForm = document.querySelector("#task-form");
       const taskStatus = document.querySelector("#task-status");
+      const taskEntryType = document.querySelector("#task-entry-type");
+      const taskFields = document.querySelector("#task-fields");
+      const meetingFields = document.querySelector("#meeting-fields");
       const taskList = document.querySelector("#task-list");
-      const taskContextFilter = document.querySelector("#task-context-filter");
+      const taskFilterInputs = document.querySelectorAll('[name="task-filter-context"], [name="task-filter-kind"]');
       const notTodoList = document.querySelector("#not-todo-list");
       const notTodoForm = document.querySelector("#not-todo-form");
       const notTodoStatus = document.querySelector("#not-todo-status");
       const completedRange = document.querySelector("#completed-range");
       const completedSearch = document.querySelector("#completed-search");
       const completedTaskList = document.querySelector("#completed-task-list");
-      const calendarEventForm = document.querySelector("#calendar-event-form");
-      const calendarStatus = document.querySelector("#calendar-status");
-      const calendarList = document.querySelector("#calendar-list");
       const thoughtForm = document.querySelector("#thought-form");
       const thoughtStatus = document.querySelector("#thought-status");
       const thoughtList = document.querySelector("#thought-list");
@@ -958,8 +1184,13 @@
       const expenseItemsList = document.querySelector("#expense-items-list");
       const addExpenseItemButton = document.querySelector("#add-expense-item");
       const briefing = document.querySelector("#briefing");
+      const scheduleList = document.querySelector("#schedule-list");
       const financeProfile = normalizeFinanceProfile(loadFinanceProfile());
       let currentTasks = [];
+      let currentCalendarEvents = [];
+      let currentActivities = [];
+      let currentDaily = null;
+      let thoughtTaskDrafts = {};
       const exchangeRates = {
         ready: false,
         date: null,
@@ -971,14 +1202,9 @@
       };
 
       try {
-        today.textContent = new Intl.DateTimeFormat("zh-CN", {
-          year: "numeric",
-          month: "short",
-          day: "numeric",
-          weekday: "short",
-        }).format(new Date());
+        today.textContent = formatDateOnlyLocal(new Date());
       } catch (error) {
-        today.textContent = new Date().toLocaleDateString();
+        today.textContent = "";
       }
 
       document.addEventListener("click", (event) => {
@@ -1025,7 +1251,7 @@
         saveFinanceProfile(financeProfile);
         updateCurrencyButtons();
         renderFinanceProfile();
-        document.querySelector("#stat-net").textContent = formatMoneyWithCurrency(getFinanceGap(currency), currency);
+        renderStats(currentDaily, currentActivities);
       }
 
       function updateCurrencyButtons() {
@@ -1048,12 +1274,141 @@
         return new Date(value).toISOString();
       }
 
+      function localDateTimeInputValue(value) {
+        if (!value) return "";
+        const dateValue = new Date(value);
+        if (Number.isNaN(dateValue.getTime())) return "";
+        const year = dateValue.getFullYear();
+        const month = String(dateValue.getMonth() + 1).padStart(2, "0");
+        const day = String(dateValue.getDate()).padStart(2, "0");
+        const hours = String(dateValue.getHours()).padStart(2, "0");
+        const minutes = String(dateValue.getMinutes()).padStart(2, "0");
+        return `${year}-${month}-${day}T${hours}:${minutes}`;
+      }
+
       function formatDateTime(value) {
         if (!value) return "";
-        return new Intl.DateTimeFormat("zh-CN", {
-          dateStyle: "short",
-          timeStyle: "short",
-        }).format(new Date(value));
+        const dateValue = value instanceof Date ? value : new Date(value);
+        if (Number.isNaN(dateValue.getTime())) return "";
+        const hours = String(dateValue.getHours()).padStart(2, "0");
+        const minutes = String(dateValue.getMinutes()).padStart(2, "0");
+        return `${formatDateOnlyLocal(dateValue)} ${hours}:${minutes}`;
+      }
+
+      function formatDateOnlyLocal(value) {
+        if (!value) return "";
+        const dateValue = value instanceof Date
+          ? value
+          : /^\d{4}-\d{2}-\d{2}$/.test(String(value))
+            ? parseDateOnly(value)
+            : new Date(value);
+        if (Number.isNaN(dateValue.getTime())) return "";
+        const year = dateValue.getFullYear();
+        const month = String(dateValue.getMonth() + 1).padStart(2, "0");
+        const day = String(dateValue.getDate()).padStart(2, "0");
+        const weekdays = ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"];
+        return `${year}-${month}-${day} ${weekdays[dateValue.getDay()]}`;
+      }
+
+      function checkedValues(selector) {
+        return Array.from(document.querySelectorAll(selector))
+          .filter((input) => input.checked)
+          .map((input) => input.value);
+      }
+
+      function weekdayLabel(value) {
+        const labels = {
+          "1": "周一",
+          "2": "周二",
+          "3": "周三",
+          "4": "周四",
+          "5": "周五",
+          "6": "周六",
+          "0": "周日",
+        };
+        return labels[String(value)] || "";
+      }
+
+      function buildRecurrenceRule(prefix, options = {}) {
+        const frequency = document.querySelector(`#${prefix}-recurrence-frequency`).value;
+        const interval = Number(document.querySelector(`#${prefix}-recurrence-interval`).value) || 1;
+        const monthValue = document.querySelector(`#${prefix}-recurrence-month`).value;
+        const dayValue = document.querySelector(`#${prefix}-recurrence-day`).value;
+        const rule = {
+          frequency,
+          interval,
+          start_date: document.querySelector(`#${prefix}-recurrence-start-date`).value || null,
+          end_date: document.querySelector(`#${prefix}-recurrence-end-date`).value || null,
+          exclude: checkedValues(`[name="${prefix}-recurrence-exclude"]`),
+          weekdays: checkedValues(`[name="${prefix}-recurrence-weekday"]`),
+          monthly_mode: document.querySelector(`#${prefix}-recurrence-monthly-mode`).value,
+          month: monthValue ? Number(monthValue) : null,
+          day: dayValue ? Number(dayValue) : null,
+          nth: Number(document.querySelector(`#${prefix}-recurrence-nth`).value),
+          nth_weekday: document.querySelector(`#${prefix}-recurrence-nth-weekday`).value,
+        };
+        if (options.withCalendar) {
+          rule.calendar = document.querySelector(`#${prefix}-recurrence-calendar`).value;
+        }
+        if (options.withTime) {
+          rule.start_time = document.querySelector(`#${prefix}-recurrence-start-time`).value || null;
+          rule.duration_minutes = Number(document.querySelector(`#${prefix}-recurrence-duration`).value) || 60;
+        }
+        return rule;
+      }
+
+      function recurrenceWeekdaysText(rule) {
+        return (rule.weekdays || []).map(weekdayLabel).filter(Boolean).join("、");
+      }
+
+      function recurrenceExcludeText(rule) {
+        const labels = {
+          jp_business_day: "排除日本平日",
+          cn_business_day: "排除中国平日",
+        };
+        return (rule.exclude || []).map((value) => labels[value]).filter(Boolean).join("、");
+      }
+
+      function recurrenceSummary(rule, note = "") {
+        const frequencyLabels = {
+          daily: `每${rule.interval || 1}日`,
+          weekly: `每${rule.interval || 1}周`,
+          monthly: `每${rule.interval || 1}月`,
+          yearly: "每年",
+        };
+        const parts = [frequencyLabels[rule.frequency] || "定期"];
+        if (rule.calendar === "lunar") parts.push("农历");
+        if (rule.frequency === "weekly" && recurrenceWeekdaysText(rule)) parts.push(recurrenceWeekdaysText(rule));
+        if (rule.frequency === "monthly") {
+          if (rule.monthly_mode === "nth_weekday") {
+            parts.push(`${rule.nth === -1 ? "最后一个" : `第${rule.nth}个`}${weekdayLabel(rule.nth_weekday)}`);
+          } else if (rule.day) {
+            parts.push(`${rule.day}日`);
+          }
+        }
+        if (rule.frequency === "yearly") {
+          if (rule.monthly_mode === "nth_weekday" && rule.month) {
+            parts.push(`${rule.month}月${rule.nth === -1 ? "最后一个" : `第${rule.nth}个`}${weekdayLabel(rule.nth_weekday)}`);
+          } else if (rule.month && rule.day) {
+            parts.push(`${rule.month}月${rule.day}日`);
+          }
+        }
+        if (rule.start_date || rule.end_date) parts.push(`${rule.start_date || "未指定"} 至 ${rule.end_date || "未指定"}`);
+        const excludeText = recurrenceExcludeText(rule);
+        if (excludeText) parts.push(excludeText);
+        if (note) parts.push(note);
+        return parts.join(" · ");
+      }
+
+      function localDateTimeFromParts(dateValue, timeValue) {
+        if (!dateValue || !timeValue) return null;
+        return localDateTimeValue(`${dateValue}T${timeValue}`);
+      }
+
+      function addMinutesToIso(isoValue, minutes) {
+        if (!isoValue) return null;
+        const dateValue = new Date(isoValue);
+        return new Date(dateValue.getTime() + minutes * 60000).toISOString();
       }
 
       function formatMoney(value) {
@@ -1349,7 +1704,7 @@
       }
 
       function labelRecurrence(item) {
-        if (item.todo_kind !== "recurring") return "";
+        if (!isRecurringTask(item) && !isRecurringMeeting(item)) return "";
         const frequencyLabels = {
           daily: "每天",
           weekly: "每周",
@@ -1380,13 +1735,180 @@
         return "medium";
       }
 
+      function todayStart() {
+        const value = new Date();
+        value.setHours(0, 0, 0, 0);
+        return value;
+      }
+
+      function parseDateOnly(value) {
+        if (!value) return null;
+        const parsed = new Date(`${value}T00:00:00`);
+        return Number.isNaN(parsed.getTime()) ? null : parsed;
+      }
+
+      function daysFromToday(dateValue) {
+        if (!dateValue) return null;
+        return Math.ceil((dateValue - todayStart()) / 86400000);
+      }
+
+      function isCreatedToday(item) {
+        if (!item.created_at) return false;
+        const created = new Date(item.created_at);
+        if (Number.isNaN(created.getTime())) return false;
+        const todayDate = todayStart();
+        return created.getFullYear() === todayDate.getFullYear()
+          && created.getMonth() === todayDate.getMonth()
+          && created.getDate() === todayDate.getDate();
+      }
+
+      function isRecurringTask(item) {
+        return item.todo_kind === "recurring" || item.recurrence_frequency || item.recurrence_natural;
+      }
+
+      function isRecurringMeeting(item) {
+        return item.event_kind === "recurring" || item.recurrence_frequency || item.recurrence_natural;
+      }
+
+      function agendaItemIsRecurring(item) {
+        return item.kind === "meeting" ? isRecurringMeeting(item.meeting) : isRecurringTask(item.task);
+      }
+
+      function agendaItemFrequency(item) {
+        return item.kind === "meeting" ? item.meeting.recurrence_frequency : item.task.recurrence_frequency;
+      }
+
+      function recurrenceNoticeDays(item) {
+        if (item.recurrence_frequency === "yearly") return 14;
+        if (item.recurrence_frequency === "monthly") return 3;
+        if (item.recurrence_frequency === "weekly") return 1;
+        return 0;
+      }
+
+      function weekdayIndexes(text) {
+        const source = String(text || "");
+        const pairs = [
+          ["日", 0], ["天", 0], ["一", 1], ["二", 2], ["三", 3], ["四", 4], ["五", 5], ["六", 6],
+        ];
+        const values = [];
+        for (const [label, index] of pairs) {
+          if ((source.includes(`周${label}`) || source.includes(`星期${label}`) || source.includes(`礼拜${label}`)) && !values.includes(index)) {
+            values.push(index);
+          }
+        }
+        const numericValues = source.match(/\b[0-6]\b/g) || [];
+        for (const value of numericValues) {
+          const index = Number(value);
+          if (!values.includes(index)) values.push(index);
+        }
+        return values;
+      }
+
+      function nextMonthlyDate(dayValue) {
+        const day = Number(dayValue);
+        if (!Number.isFinite(day) || day < 1 || day > 31) return null;
+        const todayDate = todayStart();
+        const buildDate = (year, month) => {
+          const lastDay = new Date(year, month + 1, 0).getDate();
+          return new Date(year, month, Math.min(day, lastDay));
+        };
+        const thisMonth = buildDate(todayDate.getFullYear(), todayDate.getMonth());
+        if (thisMonth >= todayDate) return thisMonth;
+        return buildDate(todayDate.getFullYear(), todayDate.getMonth() + 1);
+      }
+
+      function lunarMonthDay(dateValue) {
+        try {
+          const formatter = new Intl.DateTimeFormat("zh-CN-u-ca-chinese", {
+            month: "numeric",
+            day: "numeric",
+          });
+          const parts = formatter.formatToParts(dateValue);
+          const monthPart = parts.find((part) => part.type === "month");
+          const dayPart = parts.find((part) => part.type === "day");
+          const month = Number(monthPart ? monthPart.value : null);
+          const day = Number(dayPart ? dayPart.value : null);
+          if (!Number.isFinite(month) || !Number.isFinite(day)) return null;
+          return { month, day };
+        } catch (error) {
+          return null;
+        }
+      }
+
+      function nextLunarYearlyDate(monthValue, dayValue) {
+        const month = Number(monthValue);
+        const day = Number(dayValue);
+        if (!Number.isFinite(month) || !Number.isFinite(day) || month < 1 || month > 12 || day < 1 || day > 31) return null;
+        const todayDate = todayStart();
+        for (let offset = 0; offset <= 430; offset += 1) {
+          const candidate = new Date(todayDate.getTime() + offset * 86400000);
+          const lunar = lunarMonthDay(candidate);
+          if (lunar && lunar.month === month && lunar.day === day) {
+            return candidate;
+          }
+        }
+        return null;
+      }
+
+      function nextYearlyDate(monthValue, dayValue, calendarValue = "solar") {
+        if (calendarValue === "lunar") return nextLunarYearlyDate(monthValue, dayValue);
+        const month = Number(monthValue);
+        const day = Number(dayValue);
+        if (!Number.isFinite(month) || !Number.isFinite(day) || month < 1 || month > 12 || day < 1 || day > 31) return null;
+        const todayDate = todayStart();
+        const buildDate = (year) => {
+          const lastDay = new Date(year, month, 0).getDate();
+          return new Date(year, month - 1, Math.min(day, lastDay));
+        };
+        const thisYear = buildDate(todayDate.getFullYear());
+        if (thisYear >= todayDate) return thisYear;
+        return buildDate(todayDate.getFullYear() + 1);
+      }
+
+      function nextRecurringOccurrence(item) {
+        if (!isRecurringTask(item) && !isRecurringMeeting(item)) return null;
+        if (item.recurrence_frequency === "daily") return todayStart();
+        if (item.recurrence_frequency === "weekly") {
+          const weekdays = weekdayIndexes(`${item.recurrence_weekdays || ""} ${item.recurrence_natural || ""}`);
+          if (!weekdays.length) return null;
+          const todayDate = todayStart();
+          const todayWeekday = todayDate.getDay();
+          const offsets = weekdays.map((weekday) => (weekday - todayWeekday + 7) % 7);
+          const nextOffset = Math.min(...offsets);
+          return new Date(todayDate.getTime() + nextOffset * 86400000);
+        }
+        if (item.recurrence_frequency === "monthly") {
+          return nextMonthlyDate(item.recurrence_day);
+        }
+        if (item.recurrence_frequency === "yearly") {
+          return nextYearlyDate(item.recurrence_month, item.recurrence_day, item.recurrence_calendar);
+        }
+        return null;
+      }
+
+      function isRecurringInAttentionWindow(item) {
+        if (!isRecurringTask(item)) return false;
+        const dueDate = parseDateOnly(item.due_date);
+        const dueDays = daysFromToday(dueDate);
+        if (dueDays !== null && dueDays <= 3) return true;
+        const nextDate = nextRecurringOccurrence(item);
+        const nextDays = daysFromToday(nextDate);
+        return nextDays !== null && nextDays >= 0 && nextDays <= recurrenceNoticeDays(item);
+      }
+
+      function shouldShowInTaskList(item) {
+        if (item.type === "not_todo" || item.done) return false;
+        if (isRecurringTask(item)) return isRecurringInAttentionWindow(item);
+        const dueDate = parseDateOnly(item.due_date);
+        if (dueDate) return daysFromToday(dueDate) <= 0;
+        return isCreatedToday(item);
+      }
+
       function urgencyWithDueDate(urgency, dueDateValue, done = false) {
         if (urgency === "high") return "high";
         if (!dueDateValue || done) return urgency || "medium";
-        const todayDate = new Date();
-        todayDate.setHours(0, 0, 0, 0);
-        const dueDate = new Date(`${dueDateValue}T00:00:00`);
-        const daysLeft = Math.ceil((dueDate - todayDate) / 86400000);
+        const daysLeft = daysFromToday(parseDateOnly(dueDateValue));
+        if (daysLeft === null) return urgency || "medium";
         return daysLeft <= 3 ? "high" : urgency || "medium";
       }
 
@@ -1396,10 +1918,12 @@
       }
 
       function effectiveUrgency(item) {
+        if (isRecurringInAttentionWindow(item)) return "high";
         return urgencyWithDueDate(item.urgency || "medium", item.due_date, item.done);
       }
 
       function effectivePriority(item) {
+        if (isRecurringInAttentionWindow(item)) return "ultra";
         const importance = importanceWithRecurrence(item.importance || "medium", item.recurrence_natural, item.recurrence_cron, item.todo_kind);
         return evaluateTaskPriority(importance, effectiveUrgency(item));
       }
@@ -1425,6 +1949,87 @@
           if (b.due_date) return 1;
           return new Date(b.created_at) - new Date(a.created_at);
         });
+      }
+
+      function agendaSortValue(item) {
+        if (item.kind === "meeting") return 250;
+        return taskSortValue(item.task);
+      }
+
+      function agendaTimeValue(item) {
+        if (item.kind === "meeting") return new Date(item.meeting.starts_at).getTime();
+        if (item.task.due_date) return parseDateOnly(item.task.due_date).getTime();
+        return new Date(item.task.created_at).getTime();
+      }
+
+      function sortedAgendaItems(items) {
+        return items.slice().sort((a, b) => {
+          const priorityDifference = agendaSortValue(b) - agendaSortValue(a);
+          if (priorityDifference !== 0) return priorityDifference;
+          return agendaTimeValue(a) - agendaTimeValue(b);
+        });
+      }
+
+      function agendaGroupKey(item) {
+        if (!agendaItemIsRecurring(item)) return "one_time";
+        const frequency = agendaItemFrequency(item);
+        if (frequency === "daily") return "daily";
+        if (frequency === "weekly") return "weekly";
+        if (frequency === "monthly") return "monthly";
+        if (frequency === "yearly") return "yearly";
+        return "recurring";
+      }
+
+      function agendaGroupLabel(key) {
+        const labels = {
+          one_time: "非定期",
+          daily: "每日定期",
+          weekly: "每周定期",
+          monthly: "每月定期",
+          yearly: "每年定期",
+          recurring: "其他定期",
+        };
+        return labels[key] || "任务";
+      }
+
+      function renderAgendaGroup(key, items) {
+        if (!items.length) return;
+        const groupNode = document.createElement("details");
+        groupNode.className = "item";
+        groupNode.open = true;
+        groupNode.innerHTML = `
+          <summary class="summary-row">
+            <span class="item-title">${escapeHtml(agendaGroupLabel(key))}</span>
+            <span class="pill">${items.length}</span>
+          </summary>
+          <div class="detail-body"></div>
+        `;
+        taskList.appendChild(groupNode);
+        const body = groupNode.querySelector(".detail-body");
+        for (const item of items) {
+          if (item.kind === "meeting") {
+            renderMeetingTaskItem(item.meeting, body);
+          } else {
+            renderTaskItem(item.task, body);
+          }
+        }
+      }
+
+      function selectedTaskFilters() {
+        const contexts = Array.from(document.querySelectorAll('[name="task-filter-context"]:checked')).map((input) => input.value);
+        const kinds = Array.from(document.querySelectorAll('[name="task-filter-kind"]:checked')).map((input) => input.value);
+        return { contexts, kinds };
+      }
+
+      function matchesTaskFilters(item, filters) {
+        if (!filters.contexts.includes(item.context || "personal")) return false;
+        const kind = isRecurringTask(item) ? "recurring" : "one_time";
+        return filters.kinds.includes(kind);
+      }
+
+      function matchesMeetingFilters(item, filters) {
+        const kind = isRecurringMeeting(item) ? "recurring" : "one_time";
+        return filters.contexts.includes(item.account_context || "personal") && filters.kinds.includes(kind);
       }
 
       function updateTaskPriorityPreview() {
@@ -1477,26 +2082,102 @@
         }
       }
 
-      function renderTasks(items) {
+      function renderActivityAnalysis(data) {
+        const pdca = data.pdca || {};
+        const stow = data.stow || {};
+        activityAnalysis.innerHTML = `
+          <div class="item">
+            <div class="meta">${escapeHtml(data.summary || "Aide 生成了复盘草稿")}</div>
+          </div>
+          <details class="item" open>
+            <summary class="summary-row">
+              <span class="item-title">PDCA</span>
+            </summary>
+            <div class="detail-body">
+              <div class="report-grid">
+                ${reportLine("Plan", pdca.plan)}
+                ${reportLine("Do", pdca.do)}
+                ${reportLine("Check", pdca.check)}
+                ${reportLine("Act", pdca.act)}
+              </div>
+            </div>
+          </details>
+          <details class="item" open>
+            <summary class="summary-row">
+              <span class="item-title">STOW</span>
+            </summary>
+            <div class="detail-body">
+              <div class="report-grid">
+                ${reportLine("Strengths", (stow.strengths || []).join("；"))}
+                ${reportLine("Threats", (stow.threats || []).join("；"))}
+                ${reportLine("Opportunities", (stow.opportunities || []).join("；"))}
+                ${reportLine("Weaknesses", (stow.weaknesses || []).join("；"))}
+              </div>
+            </div>
+          </details>
+          <div class="item">
+            <div class="item-title">给想法的数据</div>
+            ${(data.thought_inputs || []).map((item) => `<div class="meta">${escapeHtml(item)}</div>`).join("")}
+          </div>
+        `;
+      }
+
+      function renderTasks(items, calendarItems = currentCalendarEvents) {
         taskList.innerHTML = "";
-        const selectedContext = taskContextFilter.value;
-        const todos = sortedTasks(
-          items.filter((item) => item.type !== "not_todo" && !item.done && (selectedContext === "all" || item.context === selectedContext)),
-        );
-        if (!todos.length) {
-          taskList.innerHTML = '<div class="empty">还没有任务</div>';
+        const filters = selectedTaskFilters();
+        const todos = items
+          .filter((item) => item.type !== "not_todo" && !item.done && matchesTaskFilters(item, filters))
+          .map((item) => ({ kind: "task", task: item }));
+        const meetings = calendarItems
+          .filter((item) => !item.done)
+          .filter((item) => matchesMeetingFilters(item, filters))
+          .filter((item) => isRecurringMeeting(item) || !hasCompleteOutcome("meeting", item, currentActivities))
+          .map((item) => ({ kind: "meeting", meeting: item }));
+        const agendaItems = sortedAgendaItems([...todos, ...meetings]);
+        if (!agendaItems.length) {
+          taskList.innerHTML = '<div class="empty">没有符合筛选条件的任务</div>';
           renderNotTodos(items);
           renderCompletedTasks(items);
           return;
         }
-        for (const item of todos.slice(0, 12)) {
-          const node = document.createElement("details");
-          node.className = "item";
-          const urgency = effectiveUrgency(item);
-          const priority = effectivePriority(item);
-          const importance = importanceWithRecurrence(item.importance || "medium", item.recurrence_natural, item.recurrence_cron, item.todo_kind);
-          const recurrenceLabel = labelRecurrence(item);
-          node.innerHTML = `
+        const groupOrder = ["one_time", "daily", "weekly", "monthly", "yearly", "recurring"];
+        for (const groupKey of groupOrder) {
+          renderAgendaGroup(groupKey, agendaItems.filter((item) => agendaGroupKey(item) === groupKey));
+        }
+        bindTaskEditForms();
+        bindMeetingEditForms();
+        const completeButtons = document.querySelectorAll(".complete-task");
+        for (let index = 0; index < completeButtons.length; index += 1) {
+          const button = completeButtons[index];
+          button.addEventListener("click", async () => {
+            button.disabled = true;
+            await api(`/tasks/${button.getAttribute("data-task-id")}/complete`, { method: "POST" });
+            await refresh();
+          });
+        }
+        const completeMeetingButtons = document.querySelectorAll(".complete-meeting");
+        for (let index = 0; index < completeMeetingButtons.length; index += 1) {
+          const button = completeMeetingButtons[index];
+          button.addEventListener("click", async () => {
+            button.disabled = true;
+            await api(`/calendar/events/${button.getAttribute("data-event-id")}/complete`, { method: "POST" });
+            await refresh();
+          });
+        }
+        renderNotTodos(items);
+        renderCompletedTasks(items);
+      }
+
+      function renderTaskItem(item, target = taskList) {
+        const node = document.createElement("details");
+        node.className = "item";
+        const urgency = effectiveUrgency(item);
+        const priority = effectivePriority(item);
+        const importance = importanceWithRecurrence(item.importance || "medium", item.recurrence_natural, item.recurrence_cron, item.todo_kind);
+        const recurrenceLabel = labelRecurrence(item);
+        const recurringAttention = isRecurringInAttentionWindow(item);
+        const nextOccurrence = nextRecurringOccurrence(item);
+        node.innerHTML = `
             <summary class="summary-row">
               <span class="item-title">${escapeHtml(item.title)}</span>
               <span class="pill">${escapeHtml(labelPriority(priority))}</span>
@@ -1508,11 +2189,13 @@
                 <span class="pill">重要度：${escapeHtml(labelLevel(importance))}</span>
                 <span class="pill">紧急度：${escapeHtml(labelLevel(urgency))}</span>
                 ${urgency !== item.urgency ? '<span class="pill">截止日临近</span>' : ""}
+                ${recurringAttention ? '<span class="pill">定期快到了</span>' : ""}
                 ${item.todo_kind === "recurring" ? '<span class="pill">定期</span>' : '<span class="pill">非定期</span>'}
-                ${item.due_date ? escapeHtml(item.due_date) : "无截止日期"}
+                ${item.due_date ? escapeHtml(formatDateOnlyLocal(item.due_date)) : "无截止日期"}
                 ${item.done ? " · done" : ""}
               </div>
               ${recurrenceLabel ? `<div class="meta">定期：${escapeHtml(recurrenceLabel)}</div>` : ""}
+              ${recurringAttention && nextOccurrence ? `<div class="meta">下次发生：${escapeHtml(formatDateOnlyLocal(nextOccurrence))}</div>` : ""}
               <form class="task-edit-form" data-task-id="${item.id}" onsubmit="return false">
                 <label>任务<input name="title" value="${escapeAttribute(item.title)}" required /></label>
                 <label>描述<textarea name="description">${escapeHtml(item.description || "")}</textarea></label>
@@ -1535,23 +2218,65 @@
                 <button type="submit">保存修改</button>
                 <div class="status"></div>
               </form>
-              ${item.done ? "" : `<button class="secondary complete-task" data-task-id="${item.id}" type="button">完成</button>`}
+              ${item.done ? "" : `<button class="secondary complete-task" data-task-id="${item.id}" type="button">完工</button>`}
             </div>
           `;
-          taskList.appendChild(node);
-        }
-        bindTaskEditForms();
-        const completeButtons = document.querySelectorAll(".complete-task");
-        for (let index = 0; index < completeButtons.length; index += 1) {
-          const button = completeButtons[index];
-          button.addEventListener("click", async () => {
-            button.disabled = true;
-            await api(`/tasks/${button.getAttribute("data-task-id")}/complete`, { method: "POST" });
-            await refresh();
-          });
-        }
-        renderNotTodos(items);
-        renderCompletedTasks(items);
+        target.appendChild(node);
+      }
+
+      function renderMeetingTaskItem(item, target = taskList) {
+        const node = document.createElement("details");
+        node.className = "item";
+        const recurrenceLabel = labelRecurrence(item);
+        node.innerHTML = `
+          <summary class="summary-row">
+            <span class="item-title">${escapeHtml(item.title)}</span>
+            <span class="pill">会议</span>
+          </summary>
+          <div class="detail-body">
+            <div class="meta">
+              <span class="pill">${escapeHtml(labelContext(item.account_context))}</span>
+              <span class="pill">重要度：${escapeHtml(labelLevel(item.importance || "high"))}</span>
+              <span class="pill">${isRecurringMeeting(item) ? "定期" : "非定期"}</span>
+              <span class="pill">${escapeHtml(item.source || "manual")}</span>
+              ${formatDateTime(item.starts_at)}${item.ends_at ? ` - ${formatDateTime(item.ends_at)}` : ""}
+            </div>
+            ${recurrenceLabel ? `<div class="meta">定期：${escapeHtml(recurrenceLabel)}</div>` : ""}
+            ${item.location ? `<div class="meta">地点：${escapeHtml(item.location)}</div>` : ""}
+            ${item.description ? `<div class="meta">${escapeHtml(item.description)}</div>` : ""}
+            <form class="meeting-edit-form" data-event-id="${item.id}" onsubmit="return false">
+              <label>会议<input name="title" value="${escapeAttribute(item.title)}" required /></label>
+              <label>描述<textarea name="description">${escapeHtml(item.description || "")}</textarea></label>
+              <label>分类${selectHtml("account_context", item.account_context || "personal", [["personal", "个人"], ["company", "公司"]])}</label>
+              <div class="row">
+                <label>重要度${selectHtml("importance", item.importance || "high", [["high", "重要"], ["medium", "普通"], ["low", "不重要"]])}</label>
+                <label>来源${selectHtml("source", item.source || "manual", [["manual", "手动"], ["google", "Google Calendar"], ["apple", "Apple Calendar"], ["outlook", "Outlook Calendar"]])}</label>
+              </div>
+              <div class="row">
+                <label>开始<input name="starts_at" type="datetime-local" value="${escapeAttribute(localDateTimeInputValue(item.starts_at))}" required /></label>
+                <label>结束<input name="ends_at" type="datetime-local" value="${escapeAttribute(localDateTimeInputValue(item.ends_at))}" /></label>
+              </div>
+              <label>地点<input name="location" value="${escapeAttribute(item.location || "")}" /></label>
+              <div class="row">
+                <label>类型${selectHtml("event_kind", item.event_kind || "one_time", [["one_time", "非定期"], ["recurring", "定期"]])}</label>
+                <label>频率${selectHtml("recurrence_frequency", item.recurrence_frequency || "", [["", "非定期"], ["daily", "每天"], ["weekly", "每周"], ["monthly", "每月"], ["yearly", "每年"]])}</label>
+              </div>
+              <label>定期会议<input name="recurrence_natural" value="${escapeAttribute(item.recurrence_natural || "")}" /></label>
+              <div class="row">
+                <label>历法${selectHtml("recurrence_calendar", item.recurrence_calendar || "solar", [["solar", "国历"], ["lunar", "农历"]])}</label>
+                <label>星期<input name="recurrence_weekdays" value="${escapeAttribute(item.recurrence_weekdays || "")}" /></label>
+              </div>
+              <div class="row">
+                <label>月<input name="recurrence_month" type="number" min="1" max="12" value="${escapeAttribute(item.recurrence_month || "")}" /></label>
+                <label>日<input name="recurrence_day" type="number" min="1" max="31" value="${escapeAttribute(item.recurrence_day || "")}" /></label>
+              </div>
+              <button type="submit">保存修改</button>
+              <div class="status"></div>
+            </form>
+            ${item.done ? "" : `<button class="secondary complete-meeting" data-event-id="${item.id}" type="button">完工</button>`}
+          </div>
+        `;
+        target.appendChild(node);
       }
 
       function renderNotTodos(items) {
@@ -1591,9 +2316,9 @@
         }
       }
 
-      function isCompletedInRange(item, rangeName) {
+      function isCompletedDateInRange(dateValue, rangeName) {
         if (rangeName === "all") return true;
-        const completedAt = new Date(item.completed_at || item.created_at);
+        const completedAt = new Date(dateValue);
         const now = new Date();
         const ranges = {
           "1d": 1,
@@ -1606,54 +2331,72 @@
         return completedAt >= new Date(now.getTime() - days * 86400000);
       }
 
-      function renderCompletedTasks(items) {
+      function completedMeetingEntries(calendarItems = currentCalendarEvents, activities = currentActivities) {
+        const entries = [];
+        for (const meeting of calendarItems || []) {
+          if (isRecurringMeeting(meeting)) continue;
+          const token = `target=meeting:${meeting.id}`;
+          const log = (activities || []).find((item) => (item.note || "").includes(token) && outcomeIsComplete(item));
+          if (!log) continue;
+          entries.push({
+            kind: "meeting",
+            meeting,
+            log,
+            completedAt: log.occurred_at,
+          });
+        }
+        return entries;
+      }
+
+      function renderCompletedTasks(items, calendarItems = currentCalendarEvents, activities = currentActivities) {
         completedTaskList.innerHTML = "";
         const keyword = completedSearch.value.trim().toLowerCase();
         const rangeName = completedRange.value;
-        const completed = items
+        const completedTasks = items
           .filter((item) => item.done && item.type !== "not_todo")
-          .filter((item) => isCompletedInRange(item, rangeName))
           .filter((item) => !keyword || `${item.title} ${item.description || ""}`.toLowerCase().includes(keyword))
-          .sort((a, b) => new Date(b.completed_at || b.created_at) - new Date(a.completed_at || a.created_at));
+          .map((item) => ({
+            kind: "task",
+            task: item,
+            completedAt: item.completed_at || item.created_at,
+          }));
+        const completedMeetings = completedMeetingEntries(calendarItems, activities)
+          .filter((entry) => !keyword || `${entry.meeting.title} ${entry.meeting.description || ""} ${entry.meeting.location || ""} ${entry.log.note || ""}`.toLowerCase().includes(keyword));
+        const completed = [...completedTasks, ...completedMeetings]
+          .filter((entry) => isCompletedDateInRange(entry.completedAt, rangeName))
+          .sort((a, b) => new Date(b.completedAt) - new Date(a.completedAt));
         if (!completed.length) {
-          completedTaskList.innerHTML = '<div class="empty">没有找到已完成任务</div>';
+          completedTaskList.innerHTML = '<div class="empty">没有找到已完成/已参加</div>';
           return;
         }
-        for (const item of completed.slice(0, 20)) {
+        for (const entry of completed.slice(0, 20)) {
           const node = document.createElement("div");
           node.className = "item";
-          node.innerHTML = `
-            <div class="item-title">${escapeHtml(item.title)}</div>
-            <div class="meta">
-              <span class="pill">${escapeHtml(labelContext(item.context))}</span>
-              ${formatDateTime(item.completed_at || item.created_at)}
-            </div>
-            ${item.description ? `<div class="meta">${escapeHtml(item.description)}</div>` : ""}
-          `;
+          if (entry.kind === "meeting") {
+            const item = entry.meeting;
+            node.innerHTML = `
+              <div class="item-title">${escapeHtml(item.title)}</div>
+              <div class="meta">
+                <span class="pill">会议</span>
+                <span class="pill">${escapeHtml(labelContext(item.account_context))}</span>
+                ${formatDateTime(entry.completedAt)}
+              </div>
+              ${item.description ? `<div class="meta">${escapeHtml(item.description)}</div>` : ""}
+              ${entry.log.note ? `<div class="meta">${escapeHtml(entry.log.note.split("\n").slice(-1)[0])}</div>` : ""}
+            `;
+          } else {
+            const item = entry.task;
+            node.innerHTML = `
+              <div class="item-title">${escapeHtml(item.title)}</div>
+              <div class="meta">
+                <span class="pill">任务</span>
+                <span class="pill">${escapeHtml(labelContext(item.context))}</span>
+                ${formatDateTime(entry.completedAt)}
+              </div>
+              ${item.description ? `<div class="meta">${escapeHtml(item.description)}</div>` : ""}
+            `;
+          }
           completedTaskList.appendChild(node);
-        }
-      }
-
-      function renderCalendarEvents(items) {
-        calendarList.innerHTML = "";
-        if (!items.length) {
-          calendarList.innerHTML = '<div class="empty">今天还没有会议</div>';
-          return;
-        }
-        for (const item of items.slice(0, 12)) {
-          const node = document.createElement("div");
-          node.className = "item";
-          node.innerHTML = `
-            <div class="item-title">${escapeHtml(item.title)}</div>
-            <div class="meta">
-              <span class="pill">${escapeHtml(labelContext(item.account_context))}</span>
-              <span class="pill">${escapeHtml(item.source || "manual")}</span>
-              ${formatDateTime(item.starts_at)}${item.ends_at ? ` - ${formatDateTime(item.ends_at)}` : ""}
-            </div>
-            ${item.location ? `<div class="meta">${escapeHtml(item.location)}</div>` : ""}
-            ${item.description ? `<div class="meta">${escapeHtml(item.description)}</div>` : ""}
-          `;
-          calendarList.appendChild(node);
         }
       }
 
@@ -1672,21 +2415,131 @@
               ${item.tag ? `<span class="pill">${escapeHtml(item.tag)}</span> ` : ""}
               ${formatDateTime(item.created_at)}
             </div>
+            <button class="secondary thought-suggest-tasks" data-thought-id="${item.id}" type="button">拆分为任务</button>
+            <div class="status" id="thought-suggestion-status-${item.id}"></div>
+            <div class="items" id="thought-suggestions-${item.id}"></div>
           `;
           thoughtList.appendChild(node);
         }
+        bindThoughtSuggestionButtons();
       }
 
-      function renderStats(tasks, activities, money) {
-        const openTasks = tasks.filter((item) => item.type !== "not_todo" && !item.done);
-        const notTodos = tasks.filter((item) => item.type === "not_todo");
-        document.querySelector("#stat-open-tasks").textContent = openTasks.length;
-        document.querySelector("#stat-not-todos").textContent = notTodos.length;
-        document.querySelector("#stat-activities").textContent = activities.length;
-        document.querySelector("#stat-net").textContent = formatMoneyWithCurrency(
-          getFinanceGap(financeProfile.displayCurrency),
-          financeProfile.displayCurrency,
-        );
+      function renderThoughtTaskSuggestions(thoughtId, data) {
+        const container = document.querySelector(`#thought-suggestions-${thoughtId}`);
+        if (!container) return;
+        thoughtTaskDrafts[thoughtId] = data.suggestions || [];
+        if (!thoughtTaskDrafts[thoughtId].length) {
+          container.innerHTML = '<div class="empty">Aide 暂时没有拆出明确任务</div>';
+          return;
+        }
+        container.innerHTML = `
+          <div class="item">
+            <div class="meta">${escapeHtml(data.summary || "Aide 生成了任务草稿")}</div>
+            ${thoughtTaskDrafts[thoughtId]
+              .map(
+                (item, index) => `
+                  <label class="checkbox-row">
+                    <input type="checkbox" data-thought-task-index="${thoughtId}:${index}" checked />
+                    <span>${escapeHtml(item.title)}</span>
+                  </label>
+                  ${item.description ? `<div class="meta">${escapeHtml(item.description)}</div>` : ""}
+                `,
+              )
+              .join("")}
+            <button class="thought-accept-tasks" data-thought-id="${thoughtId}" type="button">同意，加入任务</button>
+          </div>
+        `;
+        bindThoughtAcceptButtons();
+      }
+
+      function bindThoughtSuggestionButtons() {
+        const buttons = document.querySelectorAll(".thought-suggest-tasks");
+        for (let index = 0; index < buttons.length; index += 1) {
+          const button = buttons[index];
+          button.addEventListener("click", async () => {
+            const thoughtId = button.getAttribute("data-thought-id");
+            const status = document.querySelector(`#thought-suggestion-status-${thoughtId}`);
+            setStatus(status, "拆分中...");
+            button.disabled = true;
+            try {
+              const data = await api(`/thoughts/${thoughtId}/task-suggestions`, { method: "POST" });
+              renderThoughtTaskSuggestions(thoughtId, data);
+              setStatus(status, "请确认是否加入任务");
+            } catch (error) {
+              setStatus(status, "拆分失败", true);
+            } finally {
+              button.disabled = false;
+            }
+          });
+        }
+      }
+
+      function bindThoughtAcceptButtons() {
+        const buttons = document.querySelectorAll(".thought-accept-tasks");
+        for (let index = 0; index < buttons.length; index += 1) {
+          const button = buttons[index];
+          if (button.getAttribute("data-bound") === "true") continue;
+          button.setAttribute("data-bound", "true");
+          button.addEventListener("click", async () => {
+            const thoughtId = button.getAttribute("data-thought-id");
+            const status = document.querySelector(`#thought-suggestion-status-${thoughtId}`);
+            const suggestions = thoughtTaskDrafts[thoughtId] || [];
+            const selected = Array.from(document.querySelectorAll(`[data-thought-task-index^="${thoughtId}:"]`))
+              .filter((input) => input.checked)
+              .map((input) => suggestions[Number(input.getAttribute("data-thought-task-index").split(":")[1])])
+              .filter(Boolean);
+            if (!selected.length) {
+              setStatus(status, "请至少选择一个任务", true);
+              return;
+            }
+            setStatus(status, "加入任务中...");
+            button.disabled = true;
+            try {
+              for (const item of selected) {
+                const importance = item.importance || "medium";
+                const urgency = item.urgency || "medium";
+                await api("/tasks", {
+                  method: "POST",
+                  body: JSON.stringify({
+                    title: item.title,
+                    description: item.description || null,
+                    type: "todo",
+                    context: item.context || "personal",
+                    todo_kind: "one_time",
+                    importance,
+                    urgency,
+                    priority: evaluateTaskPriority(importance, urgency),
+                  }),
+                });
+              }
+              setStatus(status, "已加入任务");
+              await refresh();
+            } catch (error) {
+              setStatus(status, "加入失败", true);
+              button.disabled = false;
+            }
+          });
+        }
+      }
+
+      function renderStats(daily = currentDaily, activities = currentActivities) {
+        const todayItems = [
+          ...((daily && daily.meetings) || []).map((item) => ({ kind: "meeting", item })),
+          ...((daily && daily.tasks) || []).map((item) => ({ kind: "task", item })),
+        ];
+        const unfinished = todayItems.filter((entry) => !hasCompleteOutcome(entry.kind, entry.item, activities));
+        const currency = financeProfile.displayCurrency;
+        const monthlyExpense = getMonthlyExpense(currency);
+        const monthlyInvestment = getMonthlyNewInvestment(currency);
+        const gap = getFinanceGap(currency);
+        const months = monthlyInvestment > 0 ? gap / monthlyInvestment : Infinity;
+        const duration = formatDurationFromMonths(months);
+        const summary = monthlyInvestment > 0
+          ? `按照现在每月固定支出 ${formatMoneyWithCurrency(monthlyExpense, currency)}，以及每月新增投资额 ${formatMoneyWithCurrency(monthlyInvestment, currency)} 估算，${duration}实现财务自由。`
+          : `按照现在每月固定支出 ${formatMoneyWithCurrency(monthlyExpense, currency)} 估算；请先设置每月新增投资额。`;
+        document.querySelector("#stat-open-tasks").textContent = unfinished.length;
+        document.querySelector("#stat-fi-duration").textContent = duration;
+        document.querySelector("#stat-fi-summary").textContent = summary;
       }
 
       function renderFinanceProfile() {
@@ -1745,6 +2598,7 @@
 
         updateCurrencyButtons();
         renderExpenseItems();
+        renderStats(currentDaily, currentActivities);
       }
 
       function renderExpenseItems() {
@@ -1811,57 +2665,341 @@
         renderFinanceProfile();
       }
 
-      function renderBriefing(data) {
-        const tasks = data.tasks || [];
-        const notTodos = data.not_todos || [];
-        const meetings = data.meetings || [];
-        briefing.innerHTML = `
-          <div class="item">
-            <div class="item-title">${escapeHtml(data.message || "Today's briefing from Aide.")}</div>
-            <div class="meta">${escapeHtml(data.date || "")}</div>
-          </div>
+      function endOfWeekDate() {
+        const value = todayStart();
+        const daysUntilSunday = (7 - value.getDay()) % 7;
+        value.setDate(value.getDate() + daysUntilSunday);
+        value.setHours(23, 59, 59, 999);
+        return value;
+      }
+
+      function endOfMonthDate() {
+        const todayDate = todayStart();
+        return new Date(todayDate.getFullYear(), todayDate.getMonth() + 1, 0, 23, 59, 59, 999);
+      }
+
+      function endOfYearDate(year) {
+        return new Date(year, 11, 31, 23, 59, 59, 999);
+      }
+
+      function scheduleBucket(dateValue) {
+        if (!dateValue || Number.isNaN(dateValue.getTime())) return null;
+        const todayDate = todayStart();
+        const daysLeft = daysFromToday(dateValue);
+        if (daysLeft === null || daysLeft <= 0) return null;
+        const currentYear = todayDate.getFullYear();
+        if (daysLeft === 1) return "tomorrow";
+        if (dateValue <= endOfWeekDate()) return "week";
+        if (dateValue <= endOfMonthDate()) return "month";
+        if (dateValue <= endOfYearDate(currentYear)) return "year";
+        if (dateValue.getFullYear() === currentYear + 1) return "next_year";
+        if (dateValue <= endOfYearDate(currentYear + 3)) return "three_year";
+        if (dateValue <= endOfYearDate(currentYear + 5)) return "five_year";
+        return null;
+      }
+
+      function scheduleDateForTask(item) {
+        if (isRecurringTask(item)) return nextRecurringOccurrence(item);
+        return parseDateOnly(item.due_date);
+      }
+
+      function scheduleDateForMeeting(item) {
+        if (isRecurringMeeting(item)) return nextRecurringOccurrence(item) || (item.starts_at ? new Date(item.starts_at) : null);
+        return item.starts_at ? new Date(item.starts_at) : null;
+      }
+
+      function outcomeScope(item) {
+        const frequency = item.recurrence_frequency;
+        if (frequency === "weekly") return "week";
+        if (frequency === "monthly") return "month";
+        if (frequency === "yearly") return "year";
+        return "today";
+      }
+
+      function outcomeScopeLabel(scope) {
+        const labels = {
+          today: "今日",
+          week: "这周",
+          month: "本月",
+          year: "今年",
+        };
+        return labels[scope] || "今日";
+      }
+
+      function outcomeVerb(kind, outcome) {
+        if (kind === "meeting") return outcome === "complete" ? "参加" : "未参加";
+        return outcome === "complete" ? "完成" : "未完成";
+      }
+
+      function outcomeCategory(kind, item, outcome) {
+        return `${outcomeScopeLabel(outcomeScope(item))}${outcomeVerb(kind, outcome)}`;
+      }
+
+      function periodStartDate(scope) {
+        const value = todayStart();
+        if (scope === "week") {
+          const mondayOffset = (value.getDay() + 6) % 7;
+          value.setDate(value.getDate() - mondayOffset);
+        } else if (scope === "month") {
+          value.setDate(1);
+        } else if (scope === "year") {
+          value.setMonth(0, 1);
+        }
+        return value;
+      }
+
+      function periodEndDate(scope) {
+        if (scope === "week") return endOfWeekDate();
+        if (scope === "month") return endOfMonthDate();
+        if (scope === "year") return endOfYearDate(todayStart().getFullYear());
+        const value = todayStart();
+        value.setHours(23, 59, 59, 999);
+        return value;
+      }
+
+      function existingOutcome(kind, item, activities) {
+        const token = `target=${kind}:${item.id}`;
+        const scope = outcomeScope(item);
+        const start = periodStartDate(scope);
+        const end = periodEndDate(scope);
+        return (activities || []).find((log) => {
+          if (!(log.note || "").includes(token)) return false;
+          const occurredAt = new Date(log.occurred_at);
+          return occurredAt >= start && occurredAt <= end;
+        });
+      }
+
+      function outcomeIsComplete(log) {
+        const category = log ? String(log.category || "") : "";
+        return Boolean(category) && !category.includes("未") && (category.includes("完成") || category.includes("参加"));
+      }
+
+      function hasCompleteOutcome(kind, item, activities = currentActivities) {
+        return outcomeIsComplete(existingOutcome(kind, item, activities));
+      }
+
+      function completedBriefingEntries(data, activities = currentActivities) {
+        const entries = [];
+        const seen = new Set();
+        const addEntry = (kind, item) => {
+          const key = `${kind}:${item.id}`;
+          if (seen.has(key) || !hasCompleteOutcome(kind, item, activities)) return;
+          seen.add(key);
+          entries.push({ kind, item });
+        };
+        for (const item of (data.meetings || [])) addEntry("meeting", item);
+        for (const item of (data.tasks || [])) addEntry("task", item);
+        for (const item of currentCalendarEvents) addEntry("meeting", item);
+        for (const item of currentTasks) {
+          if (item.type !== "not_todo") addEntry("task", item);
+        }
+        return entries;
+      }
+
+      function briefingOutcomeControls(kind, item, activities = currentActivities) {
+        const recorded = existingOutcome(kind, item, activities);
+        const completeLabel = outcomeCategory(kind, item, "complete");
+        const incompleteLabel = outcomeCategory(kind, item, "incomplete");
+        if (recorded) {
+          return `
+            <div class="meta">
+              <span class="pill">已记录</span>
+              <span class="pill">${escapeHtml(recorded.category || "行为")}</span>
+              ${escapeHtml(formatDateTime(recorded.occurred_at))}
+              ${recorded.note ? `<div class="meta">${escapeHtml(recorded.note.split("\n").slice(-1)[0])}</div>` : ""}
+            </div>
+          `;
+        }
+        return `
+          <form class="outcome-form briefing-outcome-form" data-kind="${escapeAttribute(kind)}" data-item-id="${item.id}" onsubmit="return false">
+            <label>
+              进度 / 理由
+              <textarea name="outcome_note" placeholder="未完成或未参加时必须填写；完成时可以写实际进度"></textarea>
+            </label>
+            <div class="outcome-actions">
+              <button type="button" class="briefing-outcome-button" data-outcome="complete">${escapeHtml(completeLabel)}</button>
+              <button type="button" class="secondary briefing-outcome-button" data-outcome="incomplete">${escapeHtml(incompleteLabel)}</button>
+            </div>
+            <div class="status"></div>
+          </form>
         `;
-        for (const item of meetings.slice(0, 5)) {
-          const node = document.createElement("details");
-          node.className = "item";
-          node.innerHTML = meetingReport(item);
-          briefing.appendChild(node);
-        }
-        for (const item of tasks.slice(0, 5)) {
-          const node = document.createElement("details");
-          node.className = "item";
-          node.innerHTML = briefingReport(item, "任务");
-          briefing.appendChild(node);
-        }
-        for (const item of notTodos.slice(0, 5)) {
-          const node = document.createElement("details");
-          node.className = "item";
-          node.innerHTML = briefingReport(item, "Not-to-do");
-          briefing.appendChild(node);
+      }
+
+      async function saveBriefingOutcome(kind, item, outcome, noteValue) {
+        const category = outcomeCategory(kind, item, outcome);
+        const detailLabel = noteValue ? `进度/理由：${noteValue}` : "补充：无";
+        const targetToken = `target=${kind}:${item.id}`;
+        await api("/activity-logs", {
+          method: "POST",
+          body: JSON.stringify({
+            title: `${category}：${item.title}`,
+            category,
+            note: [
+              `Aide outcome ${targetToken}`,
+              `范围：${outcomeScopeLabel(outcomeScope(item))}`,
+              detailLabel,
+            ].join("\n"),
+            occurred_at: new Date().toISOString(),
+          }),
+        });
+        if (kind === "task" && outcome === "complete" && !isRecurringTask(item)) {
+          await api(`/tasks/${item.id}/complete`, { method: "POST" });
         }
       }
 
-      function briefingReport(item, typeLabel) {
+      function makeScheduleEntries(tasks, meetings) {
+        const entries = [];
+        for (const item of tasks) {
+          if (item.type === "not_todo" || item.done) continue;
+          const dateValue = scheduleDateForTask(item);
+          const bucket = scheduleBucket(dateValue);
+          if (!bucket) continue;
+          entries.push({ bucket, dateValue, kind: "task", item });
+        }
+        for (const item of meetings) {
+          const dateValue = scheduleDateForMeeting(item);
+          const bucket = scheduleBucket(dateValue);
+          if (bucket === "tomorrow" && !isRecurringMeeting(item)) continue;
+          if (!bucket) continue;
+          entries.push({ bucket, dateValue, kind: "meeting", item });
+        }
+        return entries.sort((a, b) => a.dateValue - b.dateValue);
+      }
+
+      function renderSchedule(tasks, meetings) {
+        const entries = makeScheduleEntries(tasks || [], meetings || []);
+        const groups = [
+          ["tomorrow", "明天预定"],
+          ["week", "这周预定"],
+          ["month", "这个月预定"],
+          ["year", "今年预定"],
+          ["next_year", "明年预定"],
+          ["three_year", "3年目标"],
+          ["five_year", "5年目标"],
+        ];
+        scheduleList.innerHTML = "";
+        let rendered = false;
+        for (const [key, label] of groups) {
+          const groupItems = entries.filter((entry) => entry.bucket === key);
+          if (!groupItems.length) continue;
+          rendered = true;
+          const node = document.createElement("details");
+          node.className = "item";
+          node.open = key === "tomorrow" || key === "week";
+          node.innerHTML = `
+            <summary class="summary-row">
+              <span class="item-title">${escapeHtml(label)}</span>
+              <span class="pill">${groupItems.length}</span>
+            </summary>
+            <div class="detail-body"></div>
+          `;
+          scheduleList.appendChild(node);
+          const body = node.querySelector(".detail-body");
+          for (const entry of groupItems.slice(0, 12)) {
+            const item = entry.item;
+            const child = document.createElement("div");
+            child.className = "item compact-item";
+            const recurrence = (entry.kind === "meeting" ? isRecurringMeeting(item) : isRecurringTask(item))
+              ? `<span class="pill">${escapeHtml(labelRecurrence(item))}</span>`
+              : "";
+            const dateLabel = entry.kind === "meeting" && !isRecurringMeeting(item)
+              ? formatDateTime(item.starts_at)
+              : formatDateOnlyLocal(entry.dateValue);
+            child.innerHTML = `
+              <div class="summary-row">
+                <span class="item-title">${escapeHtml(item.title)}</span>
+                <span class="pill">${entry.kind === "meeting" ? "会议" : "任务"}</span>
+                ${recurrence}
+              </div>
+              <div class="meta">
+                <span>${escapeHtml(dateLabel)}</span>
+                <span class="pill">${escapeHtml(labelContext(item.account_context || item.context || "personal"))}</span>
+              </div>
+              ${item.description ? `<div class="meta">${escapeHtml(item.description)}</div>` : ""}
+            `;
+            body.appendChild(child);
+          }
+        }
+        if (!rendered) {
+          scheduleList.innerHTML = '<div class="empty">暂时没有未来预定</div>';
+        }
+      }
+
+      function renderBriefing(data, activities = currentActivities) {
+        const tasks = data.tasks || [];
+        const meetings = data.meetings || [];
+        const activeEntries = sortedAgendaItems([
+          ...meetings
+            .filter((item) => !hasCompleteOutcome("meeting", item, activities))
+            .map((item) => ({ kind: "meeting", meeting: item })),
+          ...tasks
+            .filter((item) => !hasCompleteOutcome("task", item, activities))
+            .map((item) => ({ kind: "task", task: item })),
+        ]);
+        const completedEntries = completedBriefingEntries(data, activities);
+        briefing.innerHTML = "";
+        if (!activeEntries.length && !completedEntries.length) {
+          briefing.innerHTML = '<div class="empty">今天没有 To-Do</div>';
+          return;
+        }
+        for (const entry of activeEntries.slice(0, 10)) {
+          const node = document.createElement("details");
+          node.className = "item";
+          node.innerHTML = entry.kind === "meeting"
+            ? meetingReport(entry.meeting, activities)
+            : briefingReport(entry.task, "任务", activities);
+          briefing.appendChild(node);
+        }
+        if (completedEntries.length) {
+          const groupNode = document.createElement("details");
+          groupNode.className = "item completed-divider";
+          groupNode.innerHTML = `
+            <summary class="summary-row">
+              <span class="item-title">已完成 / 已参加</span>
+              <span class="pill">${completedEntries.length}</span>
+            </summary>
+            <div class="detail-body"></div>
+          `;
+          briefing.appendChild(groupNode);
+          const body = groupNode.querySelector(".detail-body");
+          for (const entry of completedEntries.slice(0, 8)) {
+            const node = document.createElement("details");
+            node.className = "item completed-todo";
+            node.innerHTML = entry.kind === "meeting"
+              ? meetingReport(entry.item, activities)
+              : briefingReport(entry.item, "任务", activities);
+            body.appendChild(node);
+          }
+        }
+        bindBriefingOutcomeForms(data);
+      }
+
+      function briefingReport(item, typeLabel, activities = currentActivities) {
+        const importance = importanceWithRecurrence(item.importance || "medium", item.recurrence_natural, item.recurrence_cron, item.todo_kind);
+        const urgency = effectiveUrgency(item);
+        const priority = effectivePriority(item);
         return `
           <summary class="summary-row">
             <span class="item-title">${escapeHtml(item.title)}</span>
             <span class="pill">${escapeHtml(typeLabel)}</span>
+            ${typeLabel === "任务" ? `<span class="pill">${escapeHtml(labelPriority(priority))}</span>` : ""}
           </summary>
           <div class="detail-body">
             <div class="report-grid">
               ${reportLine("What", item.title)}
               ${reportLine("Why", item.description || (typeLabel === "Not-to-do" ? "需要避免或提醒自己的约束" : "今日需要处理或关注"))}
               ${reportLine("Who", "我")}
-              ${reportLine("When", item.due_date || "今天 / 未指定截止日期")}
+              ${reportLine("When", item.due_date ? formatDateOnlyLocal(item.due_date) : "今天 / 未指定截止日期")}
               ${reportLine("Where", "未指定")}
-              ${reportLine("How", `优先级：${labelPriority(item.priority)}，重要度：${labelLevel(item.importance)}，紧急度：${labelLevel(item.urgency)}`)}
+              ${reportLine("How", `优先级：${labelPriority(priority)}，重要度：${labelLevel(importance)}，紧急度：${labelLevel(urgency)}`)}
               ${reportLine("How much", "未指定")}
             </div>
+            ${briefingOutcomeControls("task", item, activities)}
           </div>
         `;
       }
 
-      function meetingReport(item) {
+      function meetingReport(item, activities = currentActivities) {
         return `
           <summary class="summary-row">
             <span class="item-title">${escapeHtml(item.title)}</span>
@@ -1877,6 +3015,7 @@
               ${reportLine("How", `来源：${item.source || "manual"}`)}
               ${reportLine("How much", "未指定")}
             </div>
+            ${briefingOutcomeControls("meeting", item, activities)}
           </div>
         `;
       }
@@ -1936,6 +3075,85 @@
         }
       }
 
+      function bindMeetingEditForms() {
+        const forms = document.querySelectorAll(".meeting-edit-form");
+        for (let index = 0; index < forms.length; index += 1) {
+          const form = forms[index];
+          form.addEventListener("submit", async (event) => {
+            event.preventDefault();
+            const status = form.querySelector(".status");
+            setStatus(status, "保存中...");
+            const recurrenceNatural = form.elements.recurrence_natural.value.trim();
+            const recurrenceFrequency = form.elements.recurrence_frequency.value || null;
+            const eventKind = form.elements.event_kind.value === "recurring" || recurrenceFrequency || recurrenceNatural ? "recurring" : "one_time";
+            const payload = {
+              title: form.elements.title.value.trim(),
+              description: form.elements.description.value.trim() || null,
+              account_context: form.elements.account_context.value,
+              importance: form.elements.importance.value,
+              source: form.elements.source.value,
+              starts_at: localDateTimeValue(form.elements.starts_at.value),
+              ends_at: localDateTimeValue(form.elements.ends_at.value),
+              location: form.elements.location.value.trim() || null,
+              event_kind: eventKind,
+              recurrence_natural: recurrenceNatural || null,
+              recurrence_frequency: recurrenceFrequency,
+              recurrence_calendar: form.elements.recurrence_calendar.value,
+              recurrence_month: form.elements.recurrence_month.value ? Number(form.elements.recurrence_month.value) : null,
+              recurrence_day: form.elements.recurrence_day.value ? Number(form.elements.recurrence_day.value) : null,
+              recurrence_weekdays: form.elements.recurrence_weekdays.value.trim() || null,
+            };
+            try {
+              await api(`/calendar/events/${form.getAttribute("data-event-id")}`, {
+                method: "PATCH",
+                body: JSON.stringify(payload),
+              });
+              setStatus(status, "已保存");
+              await refresh();
+            } catch (error) {
+              setStatus(status, "保存失败", true);
+            }
+          });
+        }
+      }
+
+      function bindBriefingOutcomeForms(data) {
+        const taskMap = new Map((data.tasks || []).map((item) => [String(item.id), item]));
+        const meetingMap = new Map((data.meetings || []).map((item) => [String(item.id), item]));
+        const buttons = document.querySelectorAll(".briefing-outcome-button");
+        for (let index = 0; index < buttons.length; index += 1) {
+          const button = buttons[index];
+          button.addEventListener("click", async () => {
+            const form = button.closest(".briefing-outcome-form");
+            const status = form.querySelector(".status");
+            const kind = form.getAttribute("data-kind");
+            const itemId = form.getAttribute("data-item-id");
+            const item = kind === "meeting" ? meetingMap.get(itemId) : taskMap.get(itemId);
+            const outcome = button.getAttribute("data-outcome");
+            const noteValue = form.elements.outcome_note.value.trim();
+            if (!item) {
+              setStatus(status, "没有找到这条记录", true);
+              return;
+            }
+            if (outcome === "incomplete" && !noteValue) {
+              setStatus(status, "未完成/未参加时，请填写进度或理由", true);
+              form.elements.outcome_note.focus();
+              return;
+            }
+            setStatus(status, "保存中...");
+            button.disabled = true;
+            try {
+              await saveBriefingOutcome(kind, item, outcome, noteValue);
+              setStatus(status, "已写入行为");
+              await refresh();
+            } catch (error) {
+              setStatus(status, "保存失败", true);
+              button.disabled = false;
+            }
+          });
+        }
+      }
+
       function bindCurrencyButtons() {
         const buttons = document.querySelectorAll("[data-display-currency]");
         for (let index = 0; index < buttons.length; index += 1) {
@@ -1949,15 +3167,44 @@
         updateCurrencyButtons();
       }
 
+      function updateRecurrenceVisibility(prefix) {
+        const frequency = document.querySelector(`#${prefix}-recurrence-frequency`).value;
+        const weeklyFields = document.querySelector(`#${prefix}-recurrence-weekly-fields`);
+        const nthFields = document.querySelector(`#${prefix}-recurrence-nth-fields`);
+        const dateFields = document.querySelector(`#${prefix}-recurrence-date-fields`);
+        if (weeklyFields) weeklyFields.hidden = frequency !== "weekly";
+        if (nthFields) nthFields.hidden = frequency !== "monthly" && frequency !== "yearly";
+        if (dateFields) dateFields.hidden = frequency !== "monthly" && frequency !== "yearly";
+      }
+
       function bindTaskPriorityPreview() {
+        taskEntryType.addEventListener("change", () => {
+          const isMeeting = taskEntryType.value === "meeting";
+          taskFields.hidden = isMeeting;
+          meetingFields.hidden = !isMeeting;
+          updateTaskPriorityPreview();
+        });
+        document.querySelector("#calendar-is-recurring").addEventListener("change", () => {
+          document.querySelector("#calendar-recurrence-fields").hidden = !document.querySelector("#calendar-is-recurring").checked;
+          updateRecurrenceVisibility("calendar");
+        });
         document.querySelector("#task-importance").addEventListener("change", updateTaskPriorityPreview);
         document.querySelector("#task-due-date").addEventListener("change", updateTaskPriorityPreview);
         document.querySelector("#task-is-recurring").addEventListener("change", () => {
           document.querySelector("#task-recurrence-fields").hidden = !document.querySelector("#task-is-recurring").checked;
+          updateRecurrenceVisibility("task");
           updateTaskPriorityPreview();
         });
         document.querySelector("#task-recurrence-natural").addEventListener("input", updateTaskPriorityPreview);
-        document.querySelector("#task-recurrence-frequency").addEventListener("change", updateTaskPriorityPreview);
+        document.querySelector("#task-recurrence-frequency").addEventListener("change", () => {
+          updateRecurrenceVisibility("task");
+          updateTaskPriorityPreview();
+        });
+        document.querySelector("#calendar-recurrence-frequency").addEventListener("change", () => {
+          updateRecurrenceVisibility("calendar");
+        });
+        updateRecurrenceVisibility("task");
+        updateRecurrenceVisibility("calendar");
         updateTaskPriorityPreview();
       }
 
@@ -1981,21 +3228,24 @@
           api("/thoughts"),
           api("/money"),
           api("/daily/briefing"),
-          api("/calendar/events"),
+          api("/calendar/events?all_events=true"),
         ]);
+        currentActivities = activities;
         currentTasks = tasks;
+        currentCalendarEvents = calendarEvents;
+        currentDaily = daily;
         renderActivity(activities);
-        renderTasks(tasks);
-        renderCalendarEvents(calendarEvents);
+        renderTasks(tasks, calendarEvents);
         renderThoughts(thoughts);
-        renderStats(tasks, activities, money);
+        renderStats(daily, activities);
         try {
           renderFinanceProfile();
         } catch (error) {
           console.error("Failed to render finance profile", error);
           setStatus(financeStatus, "财务概况加载失败", true);
         }
-        renderBriefing(daily);
+        renderBriefing(daily, activities);
+        renderSchedule(tasks, calendarEvents);
       }
 
       activityForm.addEventListener("submit", async (event) => {
@@ -2017,18 +3267,81 @@
         }
       });
 
+      activityAnalysisButton.addEventListener("click", async () => {
+        setStatus(activityAnalysisStatus, "分析中...");
+        activityAnalysisButton.disabled = true;
+        try {
+          const data = await api("/activity-logs/analysis");
+          renderActivityAnalysis(data);
+          setStatus(activityAnalysisStatus, "已生成分析草稿");
+        } catch (error) {
+          setStatus(activityAnalysisStatus, "分析失败", true);
+        } finally {
+          activityAnalysisButton.disabled = false;
+        }
+      });
+
       taskForm.addEventListener("submit", async (event) => {
         event.preventDefault();
         setStatus(taskStatus, "保存中...");
+        const title = document.querySelector("#task-title").value.trim();
         const descriptionInput = document.querySelector("#task-description");
+        if (taskEntryType.value === "meeting") {
+          const isRecurringMeetingInput = document.querySelector("#calendar-is-recurring").checked;
+          const meetingRule = isRecurringMeetingInput ? buildRecurrenceRule("calendar", { withTime: true }) : null;
+          const startValue = isRecurringMeetingInput
+            ? localDateTimeFromParts(meetingRule.start_date, meetingRule.start_time)
+            : localDateTimeValue(document.querySelector("#calendar-start").value);
+          if (!startValue) {
+            setStatus(taskStatus, isRecurringMeetingInput ? "请填写定期会议的开始日期和开始时刻" : "请填写会议开始时间", true);
+            return;
+          }
+          const meetingNote = document.querySelector("#calendar-recurrence-natural").value.trim();
+          const meetingWeekdays = meetingRule ? recurrenceWeekdaysText(meetingRule) : null;
+          const payload = {
+            title,
+            source: document.querySelector("#calendar-source").value,
+            account_context: document.querySelector("#calendar-context").value,
+            importance: document.querySelector("#calendar-importance").value,
+            event_kind: isRecurringMeetingInput ? "recurring" : "one_time",
+            recurrence_frequency: meetingRule ? meetingRule.frequency : null,
+            recurrence_calendar: "solar",
+            recurrence_month: meetingRule && meetingRule.month ? meetingRule.month : null,
+            recurrence_day: meetingRule && meetingRule.monthly_mode === "day_of_month" && meetingRule.day ? meetingRule.day : null,
+            recurrence_weekdays: meetingRule ? meetingWeekdays || null : null,
+            recurrence_natural: meetingRule ? recurrenceSummary(meetingRule, meetingNote) : null,
+            recurrence_rule: meetingRule ? JSON.stringify(meetingRule) : null,
+            starts_at: startValue,
+            ends_at: meetingRule ? addMinutesToIso(startValue, meetingRule.duration_minutes) : localDateTimeValue(document.querySelector("#calendar-end").value),
+            location: document.querySelector("#calendar-location").value.trim() || null,
+            description: descriptionInput ? descriptionInput.value.trim() || null : null,
+          };
+          try {
+            await api("/calendar/events", { method: "POST", body: JSON.stringify(payload) });
+            taskForm.reset();
+            taskFields.hidden = false;
+            meetingFields.hidden = true;
+            document.querySelector("#task-recurrence-fields").hidden = true;
+            document.querySelector("#calendar-recurrence-fields").hidden = true;
+            updateRecurrenceVisibility("task");
+            updateRecurrenceVisibility("calendar");
+            setStatus(taskStatus, "会议已加入");
+            await refresh();
+          } catch (error) {
+            setStatus(taskStatus, "会议保存失败", true);
+          }
+          return;
+        }
         const isRecurring = document.querySelector("#task-is-recurring").checked;
+        const taskRule = isRecurring ? buildRecurrenceRule("task", { withCalendar: true }) : null;
         const recurrenceNatural = document.querySelector("#task-recurrence-natural").value.trim();
+        const taskWeekdays = taskRule ? recurrenceWeekdaysText(taskRule) : null;
         const todoKind = isRecurring ? "recurring" : "one_time";
         const importance = importanceWithRecurrence(document.querySelector("#task-importance").value, recurrenceNatural, null, todoKind);
         const dueDate = document.querySelector("#task-due-date").value || null;
         const urgency = urgencyWithDueDate("medium", dueDate, false);
         const payload = {
-          title: document.querySelector("#task-title").value.trim(),
+          title,
           description: descriptionInput ? descriptionInput.value.trim() || null : null,
           type: "todo",
           context: document.querySelector("#task-context").value,
@@ -2037,17 +3350,23 @@
           importance,
           urgency,
           due_date: dueDate,
-          recurrence_natural: isRecurring ? recurrenceNatural || null : null,
-          recurrence_frequency: isRecurring ? document.querySelector("#task-recurrence-frequency").value : null,
-          recurrence_calendar: isRecurring ? document.querySelector("#task-recurrence-calendar").value : null,
-          recurrence_month: isRecurring && document.querySelector("#task-recurrence-month").value ? Number(document.querySelector("#task-recurrence-month").value) : null,
-          recurrence_day: isRecurring && document.querySelector("#task-recurrence-day").value ? Number(document.querySelector("#task-recurrence-day").value) : null,
-          recurrence_weekdays: isRecurring ? document.querySelector("#task-recurrence-weekdays").value.trim() || null : null,
+          recurrence_natural: taskRule ? recurrenceSummary(taskRule, recurrenceNatural) : null,
+          recurrence_frequency: taskRule ? taskRule.frequency : null,
+          recurrence_calendar: taskRule ? taskRule.calendar : null,
+          recurrence_month: taskRule && taskRule.month ? taskRule.month : null,
+          recurrence_day: taskRule && taskRule.monthly_mode === "day_of_month" && taskRule.day ? taskRule.day : null,
+          recurrence_weekdays: taskRule ? taskWeekdays || null : null,
+          recurrence_rule: taskRule ? JSON.stringify(taskRule) : null,
         };
         try {
           await api("/tasks", { method: "POST", body: JSON.stringify(payload) });
           taskForm.reset();
+          taskFields.hidden = false;
+          meetingFields.hidden = true;
           document.querySelector("#task-recurrence-fields").hidden = true;
+          document.querySelector("#calendar-recurrence-fields").hidden = true;
+          updateRecurrenceVisibility("task");
+          updateRecurrenceVisibility("calendar");
           setStatus(taskStatus, "已添加");
           await refresh();
         } catch (error) {
@@ -2076,9 +3395,11 @@
         }
       });
 
-      taskContextFilter.addEventListener("change", () => {
-        renderTasks(currentTasks);
-      });
+      for (let index = 0; index < taskFilterInputs.length; index += 1) {
+        taskFilterInputs[index].addEventListener("change", () => {
+          renderTasks(currentTasks, currentCalendarEvents);
+        });
+      }
 
       completedRange.addEventListener("change", () => {
         renderCompletedTasks(currentTasks);
@@ -2086,28 +3407,6 @@
 
       completedSearch.addEventListener("input", () => {
         renderCompletedTasks(currentTasks);
-      });
-
-      calendarEventForm.addEventListener("submit", async (event) => {
-        event.preventDefault();
-        setStatus(calendarStatus, "保存中...");
-        const payload = {
-          title: document.querySelector("#calendar-title").value.trim(),
-          source: document.querySelector("#calendar-source").value,
-          account_context: document.querySelector("#calendar-context").value,
-          starts_at: localDateTimeValue(document.querySelector("#calendar-start").value),
-          ends_at: localDateTimeValue(document.querySelector("#calendar-end").value),
-          location: document.querySelector("#calendar-location").value.trim() || null,
-          description: document.querySelector("#calendar-description").value.trim() || null,
-        };
-        try {
-          await api("/calendar/events", { method: "POST", body: JSON.stringify(payload) });
-          calendarEventForm.reset();
-          setStatus(calendarStatus, "已加入");
-          await refresh();
-        } catch (error) {
-          setStatus(calendarStatus, "保存失败", true);
-        }
       });
 
       thoughtForm.addEventListener("submit", async (event) => {
@@ -2153,10 +3452,7 @@
           financeProfile.safeWithdrawalRate = parseFormattedNumber(document.querySelector("#finance-withdrawal-rate").value) || 3.5;
           saveFinanceProfile(financeProfile);
           renderFinanceProfile();
-          document.querySelector("#stat-net").textContent = formatMoneyWithCurrency(
-            getFinanceGap(financeProfile.displayCurrency),
-            financeProfile.displayCurrency,
-          );
+          renderStats(currentDaily, currentActivities);
           setStatus(financeStatus, "已更新");
         } catch (error) {
           setStatus(financeStatus, "更新失败", true);
@@ -2181,6 +3477,7 @@
         notTodoList.innerHTML = '<div class="empty">加载失败</div>';
         thoughtList.innerHTML = '<div class="empty">加载失败</div>';
         briefing.innerHTML = '<div class="empty">加载失败</div>';
+        scheduleList.innerHTML = '<div class="empty">加载失败</div>';
       });
     </script>
   </body>

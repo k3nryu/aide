@@ -24,6 +24,7 @@ def sync_prototype_schema():
         "recurrence_month": "ALTER TABLE tasks ADD COLUMN recurrence_month INTEGER",
         "recurrence_day": "ALTER TABLE tasks ADD COLUMN recurrence_day INTEGER",
         "recurrence_weekdays": "ALTER TABLE tasks ADD COLUMN recurrence_weekdays VARCHAR(100)",
+        "recurrence_rule": "ALTER TABLE tasks ADD COLUMN recurrence_rule TEXT",
         "not_todo_group": "ALTER TABLE tasks ADD COLUMN not_todo_group VARCHAR(50)",
         "recurrence_natural": "ALTER TABLE tasks ADD COLUMN recurrence_natural TEXT",
         "recurrence_cron": "ALTER TABLE tasks ADD COLUMN recurrence_cron VARCHAR(120)",
@@ -36,6 +37,25 @@ def sync_prototype_schema():
         for column_name, statement in columns_to_add.items():
             if column_name not in task_columns:
                 connection.execute(text(statement))
+    if "calendar_events" in inspector.get_table_names():
+        calendar_columns = {column["name"] for column in inspector.get_columns("calendar_events")}
+        calendar_columns_to_add = {
+            "importance": "ALTER TABLE calendar_events ADD COLUMN importance VARCHAR(50) DEFAULT 'high'",
+            "event_kind": "ALTER TABLE calendar_events ADD COLUMN event_kind VARCHAR(50) DEFAULT 'one_time'",
+            "recurrence_frequency": "ALTER TABLE calendar_events ADD COLUMN recurrence_frequency VARCHAR(50)",
+            "recurrence_calendar": "ALTER TABLE calendar_events ADD COLUMN recurrence_calendar VARCHAR(50) DEFAULT 'solar'",
+            "recurrence_month": "ALTER TABLE calendar_events ADD COLUMN recurrence_month INTEGER",
+            "recurrence_day": "ALTER TABLE calendar_events ADD COLUMN recurrence_day INTEGER",
+            "recurrence_weekdays": "ALTER TABLE calendar_events ADD COLUMN recurrence_weekdays VARCHAR(100)",
+            "recurrence_natural": "ALTER TABLE calendar_events ADD COLUMN recurrence_natural TEXT",
+            "recurrence_rule": "ALTER TABLE calendar_events ADD COLUMN recurrence_rule TEXT",
+            "done": "ALTER TABLE calendar_events ADD COLUMN done BOOLEAN DEFAULT FALSE",
+            "completed_at": "ALTER TABLE calendar_events ADD COLUMN completed_at TIMESTAMP",
+        }
+        with engine.begin() as connection:
+            for column_name, statement in calendar_columns_to_add.items():
+                if column_name not in calendar_columns:
+                    connection.execute(text(statement))
 
 
 sync_prototype_schema()

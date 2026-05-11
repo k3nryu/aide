@@ -137,6 +137,7 @@ def update_task(task_id: int, task: TaskUpdate, db: Session = Depends(get_db)):
         "recurrence_month": item.recurrence_month,
         "recurrence_day": item.recurrence_day,
         "recurrence_weekdays": item.recurrence_weekdays,
+        "recurrence_rule": item.recurrence_rule,
         "not_todo_group": item.not_todo_group,
         "recurrence_natural": item.recurrence_natural,
         "recurrence_cron": item.recurrence_cron,
