@@ -79,6 +79,7 @@ Important fields:
 - `recurrence_month`
 - `recurrence_day`
 - `recurrence_weekdays`
+- `recurrence_rule`
 - `not_todo_group`
 - `recurrence_natural`
 - `recurrence_cron`
@@ -93,7 +94,7 @@ Important fields:
 The `type` field currently distinguishes `todo` from `not_todo`.
 The `context` field currently distinguishes `personal` from `company`.
 The `todo_kind` field distinguishes one-time todos from recurring todos.
-Recurring tasks are stored as metadata first: frequency, solar/lunar calendar, optional month/day/weekday fields, and optional natural-language notes. Actual future instance generation is still a later service-layer concern.
+Recurring tasks are stored as metadata first: frequency, solar/lunar calendar, optional month/day/weekday fields, optional natural-language notes, and `recurrence_rule` JSON for richer interval/range/exclusion details. Actual future instance generation is still a later service-layer concern.
 The `not_todo_group` field groups not-to-dos into legal, morality, company, family, and health boundaries.
 The `priority` field uses four values: `ultra`, `high`, `medium`, and `low`.
 The `recurrence_cron`, `recurrence_prepare_days`, `advanced_format`, and `advanced_body` fields are retained for prototype compatibility, but the current product direction favors simple structured recurrence fields and no advanced rule input in the UI.
@@ -107,14 +108,26 @@ Important fields:
 - `title`
 - `source`
 - `account_context`
+- `importance`
+- `event_kind`
+- `recurrence_frequency`
+- `recurrence_calendar`
+- `recurrence_month`
+- `recurrence_day`
+- `recurrence_weekdays`
+- `recurrence_natural`
+- `recurrence_rule`
 - `starts_at`
 - `ends_at`
 - `location`
 - `description`
 - `external_id`
+- `done`
+- `completed_at`
 - `created_at`
 
-The current prototype supports the shared event model and manual/API ingestion. Real Google, Apple, and Outlook account sync still needs provider-specific authentication and sync jobs.
+The current prototype supports the shared event model and manual/API ingestion. Recurring meetings use the legacy recurrence summary fields plus `recurrence_rule` JSON for Outlook-style details such as interval, date range, excluded business-day sets, and time duration. Real Google, Apple, and Outlook account sync still needs provider-specific authentication and sync jobs.
+The `done` and `completed_at` fields archive a meeting series or meeting item when the user marks it as finished from the task list; archived meetings are excluded from active calendar/task views.
 
 ### `thoughts`
 
@@ -167,12 +180,18 @@ Current routes:
 - `GET /calendar/sources`
 - `GET /calendar/events`
 - `POST /calendar/events`
+- `PATCH /calendar/events/{event_id}`
+- `POST /calendar/events/{event_id}/complete`
 - `GET /thoughts`
 - `POST /thoughts`
+- `POST /thoughts/{thought_id}/task-suggestions`
 - `GET /activity-logs`
 - `POST /activity-logs`
+- `GET /activity-logs/analysis`
 - `GET /money`
 - `POST /money`
+
+AI-assist routes currently return reviewable drafts. The prototype uses local heuristic logic in `services/ai_assist.py`; future provider-backed AI should replace that service layer without changing the user confirmation flow.
 
 ## Backend Layout
 
@@ -184,11 +203,14 @@ backend/app/
 ├── schemas.py
 ├── routers/
 │   ├── __init__.py
+│   ├── activity_logs.py
 │   ├── calendar.py
 │   ├── daily.py
 │   ├── money.py
 │   ├── tasks.py
 │   └── thoughts.py
+├── services/
+│   └── ai_assist.py
 ```
 
 Future business logic that grows beyond simple route handlers should move into `services/`.

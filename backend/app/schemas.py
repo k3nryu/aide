@@ -1,5 +1,5 @@
 from datetime import date, datetime
-from typing import Optional
+from typing import List, Optional
 
 from pydantic import BaseModel, Field
 
@@ -18,6 +18,7 @@ class TaskCreate(BaseModel):
     recurrence_month: Optional[int] = Field(default=None, ge=1, le=12)
     recurrence_day: Optional[int] = Field(default=None, ge=1, le=31)
     recurrence_weekdays: Optional[str] = None
+    recurrence_rule: Optional[str] = None
     not_todo_group: Optional[str] = None
     recurrence_natural: Optional[str] = None
     recurrence_cron: Optional[str] = None
@@ -41,6 +42,7 @@ class TaskUpdate(BaseModel):
     recurrence_month: Optional[int] = Field(default=None, ge=1, le=12)
     recurrence_day: Optional[int] = Field(default=None, ge=1, le=31)
     recurrence_weekdays: Optional[str] = None
+    recurrence_rule: Optional[str] = None
     not_todo_group: Optional[str] = None
     recurrence_natural: Optional[str] = None
     recurrence_cron: Optional[str] = None
@@ -73,6 +75,21 @@ class ThoughtOut(ThoughtCreate):
         from_attributes = True
 
 
+class SuggestedTask(BaseModel):
+    title: str
+    description: Optional[str] = None
+    context: str = "personal"
+    importance: str = "medium"
+    urgency: str = "medium"
+
+
+class ThoughtTaskSuggestionOut(BaseModel):
+    thought_id: int
+    source: str
+    summary: str
+    suggestions: List[SuggestedTask]
+
+
 class ActivityLogCreate(BaseModel):
     title: str = Field(..., min_length=1, max_length=255)
     category: Optional[str] = Field(default=None, max_length=100)
@@ -92,15 +109,55 @@ class ActivityLogOut(BaseModel):
         from_attributes = True
 
 
+class ActivityAnalysisOut(BaseModel):
+    summary: str
+    pdca: dict
+    stow: dict
+    thought_inputs: List[str]
+
+
 class CalendarEventCreate(BaseModel):
     title: str = Field(..., min_length=1, max_length=255)
     source: str = Field(default="manual", max_length=50)
     account_context: str = Field(default="personal", max_length=50)
+    importance: str = "high"
+    event_kind: str = "one_time"
+    recurrence_frequency: Optional[str] = None
+    recurrence_calendar: Optional[str] = "solar"
+    recurrence_month: Optional[int] = Field(default=None, ge=1, le=12)
+    recurrence_day: Optional[int] = Field(default=None, ge=1, le=31)
+    recurrence_weekdays: Optional[str] = None
+    recurrence_natural: Optional[str] = None
+    recurrence_rule: Optional[str] = None
     starts_at: datetime
     ends_at: Optional[datetime] = None
     location: Optional[str] = Field(default=None, max_length=255)
     description: Optional[str] = None
     external_id: Optional[str] = Field(default=None, max_length=255)
+    done: bool = False
+    completed_at: Optional[datetime] = None
+
+
+class CalendarEventUpdate(BaseModel):
+    title: Optional[str] = Field(default=None, min_length=1, max_length=255)
+    source: Optional[str] = Field(default=None, max_length=50)
+    account_context: Optional[str] = Field(default=None, max_length=50)
+    importance: Optional[str] = None
+    event_kind: Optional[str] = None
+    recurrence_frequency: Optional[str] = None
+    recurrence_calendar: Optional[str] = None
+    recurrence_month: Optional[int] = Field(default=None, ge=1, le=12)
+    recurrence_day: Optional[int] = Field(default=None, ge=1, le=31)
+    recurrence_weekdays: Optional[str] = None
+    recurrence_natural: Optional[str] = None
+    recurrence_rule: Optional[str] = None
+    starts_at: Optional[datetime] = None
+    ends_at: Optional[datetime] = None
+    location: Optional[str] = Field(default=None, max_length=255)
+    description: Optional[str] = None
+    external_id: Optional[str] = Field(default=None, max_length=255)
+    done: Optional[bool] = None
+    completed_at: Optional[datetime] = None
 
 
 class CalendarEventOut(CalendarEventCreate):

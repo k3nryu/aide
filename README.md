@@ -15,9 +15,11 @@ The project is currently an early backend-first prototype. It exposes a FastAPI 
 - Recurring task fields for daily, weekly, monthly, yearly, solar, and lunar patterns
 - Grouped not-to-dos for legal, morality, company, family, and health boundaries
 - Completed task lookup by time range or keyword
-- Calendar event capture for today's meetings
+- Calendar event capture for one-time and recurring personal/company meetings
 - Thought capture with optional tags
+- Thought-to-task suggestion drafts with user confirmation
 - Activity/life log capture for things that happened outside the task list
+- Activity review draft with PDCA and STOW analysis
 - Money record capture for income and expenses
 - Financial independence dashboard with FI assets, fixed expense items, passive income, and safe withdrawal rate
 - Simple browser UI for quick local testing
@@ -119,10 +121,13 @@ http://127.0.0.1:8000/app/
 - `GET /calendar/sources` - list planned/available calendar sources
 - `GET /calendar/events` - list calendar events for a date
 - `POST /calendar/events` - create or import a calendar event
+- `PATCH /calendar/events/{event_id}` - update a calendar event
 - `GET /thoughts` - list thoughts
 - `POST /thoughts` - create a thought
+- `POST /thoughts/{thought_id}/task-suggestions` - draft task suggestions from a thought
 - `GET /activity-logs` - list activity/life logs
 - `POST /activity-logs` - create an activity/life log
+- `GET /activity-logs/analysis` - draft PDCA/STOW analysis from completed tasks and activity logs
 - `GET /money` - list money records
 - `POST /money` - create a money record
 

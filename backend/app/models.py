@@ -22,6 +22,7 @@ class TaskDB(Base):
     recurrence_month = Column(Integer)
     recurrence_day = Column(Integer)
     recurrence_weekdays = Column(String(100))
+    recurrence_rule = Column(Text)
     not_todo_group = Column(String(50))
     recurrence_natural = Column(Text)
     recurrence_cron = Column(String(120))
@@ -61,11 +62,22 @@ class CalendarEventDB(Base):
     title = Column(String(255), nullable=False)
     source = Column(String(50), default="manual")  # manual / google / apple / outlook
     account_context = Column(String(50), default="personal")  # personal / company
+    importance = Column(String(50), default="high")
+    event_kind = Column(String(50), default="one_time")  # one_time / recurring
+    recurrence_frequency = Column(String(50))  # daily / weekly / monthly / yearly
+    recurrence_calendar = Column(String(50), default="solar")  # solar / lunar
+    recurrence_month = Column(Integer)
+    recurrence_day = Column(Integer)
+    recurrence_weekdays = Column(String(100))
+    recurrence_natural = Column(Text)
+    recurrence_rule = Column(Text)
     starts_at = Column(DateTime, nullable=False)
     ends_at = Column(DateTime)
     location = Column(String(255))
     description = Column(Text)
     external_id = Column(String(255))
+    done = Column(Boolean, default=False)
+    completed_at = Column(DateTime)
     created_at = Column(DateTime, default=datetime.utcnow)
 
 
