@@ -26,6 +26,11 @@ class TaskCreate(BaseModel):
     advanced_format: Optional[str] = "markdown"
     advanced_body: Optional[str] = None
     due_date: Optional[date] = None
+    available_date: Optional[date] = None
+    starts_at: Optional[datetime] = None
+    ends_at: Optional[datetime] = None
+    location: Optional[str] = Field(default=None, max_length=255)
+    source: Optional[str] = Field(default="manual", max_length=50)
 
 
 class TaskUpdate(BaseModel):
@@ -50,6 +55,11 @@ class TaskUpdate(BaseModel):
     advanced_format: Optional[str] = None
     advanced_body: Optional[str] = None
     due_date: Optional[date] = None
+    available_date: Optional[date] = None
+    starts_at: Optional[datetime] = None
+    ends_at: Optional[datetime] = None
+    location: Optional[str] = Field(default=None, max_length=255)
+    source: Optional[str] = Field(default=None, max_length=50)
 
 
 class TaskOut(TaskCreate):

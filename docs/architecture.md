@@ -88,12 +88,19 @@ Important fields:
 - `advanced_body`
 - `done`
 - `due_date`
+- `available_date`
+- `starts_at`
+- `ends_at`
+- `location`
+- `source`
 - `completed_at`
 - `created_at`
 
 The `type` field currently distinguishes `todo` from `not_todo`.
 The `context` field currently distinguishes `personal` from `company`.
 The `todo_kind` field distinguishes one-time todos from recurring todos.
+The `available_date` field represents the earliest date a one-time task can realistically be acted on, while `due_date` represents the latest completion date.
+The `starts_at`, `ends_at`, `location`, and `source` fields let meeting-like scheduled work live directly on tasks instead of requiring a separate meeting entry in the task UI.
 Recurring tasks are stored as metadata first: frequency, solar/lunar calendar, optional month/day/weekday fields, optional natural-language notes, and `recurrence_rule` JSON for richer interval/range/exclusion details. Actual future instance generation is still a later service-layer concern.
 The `not_todo_group` field groups not-to-dos into legal, morality, company, family, and health boundaries.
 The `priority` field uses four values: `ultra`, `high`, `medium`, and `low`.

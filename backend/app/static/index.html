@@ -136,6 +136,11 @@
         font-size: 13px;
       }
 
+      .required-mark {
+        color: var(--warn);
+        font-weight: 800;
+      }
+
       input,
       textarea,
       select {
@@ -512,20 +517,20 @@
 
       <div class="page" data-page-panel="tasks">
         <section>
-          <h2>任务/会议添加</h2>
+          <h2>任务添加</h2>
           <form id="task-form" onsubmit="return false">
             <label>
-              内容
+              内容 <span class="required-mark">*</span>
               <input id="task-title" name="title" maxlength="255" required placeholder="例：今天学习 20 个单词 / 项目同步会" />
             </label>
             <details>
               <summary class="secondary">详细设置</summary>
               <div class="detail-body">
                 <label>
-                  添加类型
+                  添加类型 <span class="required-mark">*</span>
                   <select id="task-entry-type">
-                    <option value="task">任务</option>
-                    <option value="meeting">会议</option>
+                    <option value="task" selected>任务</option>
+                    <option value="recurring_task">定期任务</option>
                   </select>
                 </label>
                 <label>
@@ -549,13 +554,29 @@
                     </select>
                   </label>
                   <div class="meta" id="task-priority-preview">Aide 会根据重要度和紧急度自动评估优先级。</div>
+                  <div class="row" id="task-one-time-fields">
+                    <label>
+                      可执行日期
+                      <input id="task-available-date" name="available_date" type="date" />
+                    </label>
+                    <label>
+                      截止日期
+                      <input id="task-due-date" name="due_date" type="date" />
+                    </label>
+                  </div>
+                  <div class="row" id="task-time-fields">
+                    <label>
+                      开始时间
+                      <input id="task-start" type="datetime-local" />
+                    </label>
+                    <label>
+                      结束时间
+                      <input id="task-end" type="datetime-local" />
+                    </label>
+                  </div>
                   <label>
-                    截止日期
-                    <input id="task-due-date" name="due_date" type="date" />
-                  </label>
-                  <label class="checkbox-row">
-                    <input id="task-is-recurring" type="checkbox" />
-                    这是定期任务
+                    地点
+                    <input id="task-location" maxlength="255" placeholder="地点 / 线上链接 / 可选" />
                   </label>
                   <div class="detail-body" id="task-recurrence-fields" hidden>
                     <div class="meta">定期规则</div>
@@ -583,18 +604,33 @@
                     </div>
                     <div class="row">
                       <label>
-                        开始日期
+                        可执行日期 <span class="required-mark">*</span>
                         <input id="task-recurrence-start-date" type="date" />
                       </label>
                       <label>
-                        结束日期
+                        截止日期
                         <input id="task-recurrence-end-date" type="date" />
+                      </label>
+                    </div>
+                    <div class="row">
+                      <label>
+                        开始时刻
+                        <input id="task-recurrence-start-time" type="time" />
+                      </label>
+                      <label>
+                        时长
+                        <select id="task-recurrence-duration">
+                          <option value="30">30 分钟</option>
+                          <option value="60" selected>60 分钟</option>
+                          <option value="90">90 分钟</option>
+                          <option value="120">120 分钟</option>
+                        </select>
                       </label>
                     </div>
                     <div class="checkbox-row">
                       <span class="meta">排除</span>
-                      <label class="checkbox-row"><input name="task-recurrence-exclude" type="checkbox" value="jp_business_day" />日本平日</label>
-                      <label class="checkbox-row"><input name="task-recurrence-exclude" type="checkbox" value="cn_business_day" />中国平日</label>
+                      <label class="checkbox-row"><input name="task-recurrence-exclude" type="checkbox" value="jp_holiday" />日本祝日</label>
+                      <label class="checkbox-row"><input name="task-recurrence-exclude" type="checkbox" value="cn_holiday" />中国节假日</label>
                     </div>
                     <div class="checkbox-row" id="task-recurrence-weekly-fields">
                       <span class="meta">每周</span>
@@ -606,14 +642,16 @@
                       <label class="checkbox-row"><input name="task-recurrence-weekday" type="checkbox" value="6" />周六</label>
                       <label class="checkbox-row"><input name="task-recurrence-weekday" type="checkbox" value="0" />周日</label>
                     </div>
-                    <div class="row" id="task-recurrence-nth-fields">
+                    <div class="row" id="task-recurrence-mode-fields">
                       <label>
-                        每月模式
+                        日期模式
                         <select id="task-recurrence-monthly-mode">
                           <option value="day_of_month">按日期</option>
                           <option value="nth_weekday">第几个星期几</option>
                         </select>
                       </label>
+                    </div>
+                    <div class="row" id="task-recurrence-nth-fields">
                       <label>
                         第几个
                         <select id="task-recurrence-nth">
@@ -638,11 +676,11 @@
                       </label>
                     </div>
                     <div class="row" id="task-recurrence-date-fields">
-                      <label>
-                        每年指定月
+                      <label id="task-recurrence-month-field">
+                        指定月
                         <input id="task-recurrence-month" type="number" min="1" max="12" placeholder="每年时填写" />
                       </label>
-                      <label>
+                      <label id="task-recurrence-day-field">
                         指定日
                         <input id="task-recurrence-day" type="number" min="1" max="31" placeholder="每月/每年时填写" />
                       </label>
@@ -681,9 +719,9 @@
                       <option value="low">不重要</option>
                     </select>
                   </label>
-                  <div class="row">
+                  <div class="row" id="calendar-one-time-fields">
                     <label>
-                      开始
+                      开始 <span class="required-mark">*</span>
                       <input id="calendar-start" type="datetime-local" />
                     </label>
                     <label>
@@ -695,19 +733,15 @@
                     地点
                     <input id="calendar-location" maxlength="255" placeholder="可选" />
                   </label>
-                  <label class="checkbox-row">
-                    <input id="calendar-is-recurring" type="checkbox" />
-                    这是定期会议
-                  </label>
                   <div class="detail-body" id="calendar-recurrence-fields" hidden>
                     <div class="meta">必填</div>
                     <div class="row">
                       <label>
-                        开始时刻
+                        开始时刻 <span class="required-mark">*</span>
                         <input id="calendar-recurrence-start-time" type="time" />
                       </label>
                       <label>
-                        结束时刻
+                        结束时刻 <span class="required-mark">*</span>
                         <select id="calendar-recurrence-duration">
                           <option value="30">开始 + 30m</option>
                           <option value="60" selected>开始 + 60m</option>
@@ -718,8 +752,8 @@
                     </div>
                     <div class="checkbox-row">
                       <span class="meta">排除</span>
-                      <label class="checkbox-row"><input name="calendar-recurrence-exclude" type="checkbox" value="jp_business_day" />日本平日</label>
-                      <label class="checkbox-row"><input name="calendar-recurrence-exclude" type="checkbox" value="cn_business_day" />中国平日</label>
+                      <label class="checkbox-row"><input name="calendar-recurrence-exclude" type="checkbox" value="jp_holiday" />日本祝日</label>
+                      <label class="checkbox-row"><input name="calendar-recurrence-exclude" type="checkbox" value="cn_holiday" />中国节假日</label>
                     </div>
                     <div class="meta">重复模式</div>
                     <div class="row">
@@ -739,7 +773,7 @@
                     </div>
                     <div class="row">
                       <label>
-                        开始日期
+                        开始日期 <span class="required-mark">*</span>
                         <input id="calendar-recurrence-start-date" type="date" />
                       </label>
                       <label>
@@ -759,14 +793,16 @@
                         <label class="checkbox-row"><input name="calendar-recurrence-weekday" type="checkbox" value="0" />周日</label>
                       </div>
                     </div>
-                    <div class="row" id="calendar-recurrence-nth-fields">
+                    <div class="row" id="calendar-recurrence-mode-fields">
                       <label>
-                        每月模式
+                        日期模式
                         <select id="calendar-recurrence-monthly-mode">
                           <option value="day_of_month">按日期</option>
                           <option value="nth_weekday">第几个星期几</option>
                         </select>
                       </label>
+                    </div>
+                    <div class="row" id="calendar-recurrence-nth-fields">
                       <label>
                         第几个
                         <select id="calendar-recurrence-nth">
@@ -791,12 +827,12 @@
                       </label>
                     </div>
                     <div class="row" id="calendar-recurrence-date-fields">
-                      <label>
-                        每年重复月
+                      <label id="calendar-recurrence-month-field">
+                        指定月
                         <input id="calendar-recurrence-month" type="number" min="1" max="12" placeholder="每年时填写" />
                       </label>
-                      <label>
-                        每月/每年重复日
+                      <label id="calendar-recurrence-day-field">
+                        指定日
                         <input id="calendar-recurrence-day" type="number" min="1" max="31" placeholder="每月/每年时填写" />
                       </label>
                     </div>
@@ -806,7 +842,7 @@
                       <input id="calendar-recurrence-natural" placeholder="例：无结束日期 / 项目例会" />
                     </label>
                   </div>
-                  <div class="meta" id="calendar-source-status">真实 Google / Apple / Outlook 同步需要后续配置账户授权；当前先支持同一结构的会议录入和导入接口。</div>
+                  <div class="meta" id="calendar-source-status">真实 Google / Apple / Outlook 同步需要后续配置账户授权；当前先支持同一结构的活动录入和导入接口。</div>
                 </div>
               </div>
             </details>
@@ -866,11 +902,11 @@
             <div class="detail-body">
               <form id="not-todo-form" onsubmit="return false">
                 <label>
-                  内容
-                  <input id="not-todo-title" maxlength="255" placeholder="例：不做违法的事情" />
+                  内容 <span class="required-mark">*</span>
+                  <input id="not-todo-title" maxlength="255" required placeholder="例：不做违法的事情" />
                 </label>
                 <label>
-                  分组
+                  分组 <span class="required-mark">*</span>
                   <select id="not-todo-group">
                     <option value="law">法律</option>
                     <option value="morality">道德</option>
@@ -893,7 +929,7 @@
           <h2>行为添加</h2>
           <form id="activity-form" onsubmit="return false">
             <label>
-              做了什么
+              做了什么 <span class="required-mark">*</span>
               <input id="activity-title" name="title" maxlength="255" required placeholder="例：21:30 去了一趟便利店" />
             </label>
             <details>
@@ -946,7 +982,7 @@
           <h2>想法</h2>
           <form id="thought-form" onsubmit="return false">
             <label>
-              内容
+              内容 <span class="required-mark">*</span>
               <textarea id="thought-content" name="content" required placeholder="记录一个想法"></textarea>
             </label>
             <details>
@@ -1137,7 +1173,7 @@
               </label>
             </div>
             <label>
-              安全提取率（%）
+              安全提取率（%）<span class="required-mark">*</span>
               <input id="finance-withdrawal-rate" name="safe_withdrawal_rate" required type="text" inputmode="decimal" data-number-format="decimal" />
             </label>
             <button type="submit">更新</button>
@@ -1168,6 +1204,11 @@
       const taskEntryType = document.querySelector("#task-entry-type");
       const taskFields = document.querySelector("#task-fields");
       const meetingFields = document.querySelector("#meeting-fields");
+      const taskOneTimeFields = document.querySelector("#task-one-time-fields");
+      const taskTimeFields = document.querySelector("#task-time-fields");
+      const taskRecurrenceFields = document.querySelector("#task-recurrence-fields");
+      const calendarOneTimeFields = document.querySelector("#calendar-one-time-fields");
+      const calendarRecurrenceFields = document.querySelector("#calendar-recurrence-fields");
       const taskList = document.querySelector("#task-list");
       const taskFilterInputs = document.querySelectorAll('[name="task-filter-context"], [name="task-filter-kind"]');
       const notTodoList = document.querySelector("#not-todo-list");
@@ -1363,8 +1404,10 @@
 
       function recurrenceExcludeText(rule) {
         const labels = {
-          jp_business_day: "排除日本平日",
-          cn_business_day: "排除中国平日",
+          jp_holiday: "排除日本祝日",
+          cn_holiday: "排除中国节假日",
+          jp_business_day: "排除日本祝日",
+          cn_business_day: "排除中国节假日",
         };
         return (rule.exclude || []).map((value) => labels[value]).filter(Boolean).join("、");
       }
@@ -1804,10 +1847,11 @@
         return values;
       }
 
-      function nextMonthlyDate(dayValue) {
+      function nextMonthlyDate(dayValue, fromDate = todayStart()) {
         const day = Number(dayValue);
         if (!Number.isFinite(day) || day < 1 || day > 31) return null;
-        const todayDate = todayStart();
+        const todayDate = new Date(fromDate);
+        todayDate.setHours(0, 0, 0, 0);
         const buildDate = (year, month) => {
           const lastDay = new Date(year, month + 1, 0).getDate();
           return new Date(year, month, Math.min(day, lastDay));
@@ -1835,11 +1879,12 @@
         }
       }
 
-      function nextLunarYearlyDate(monthValue, dayValue) {
+      function nextLunarYearlyDate(monthValue, dayValue, fromDate = todayStart()) {
         const month = Number(monthValue);
         const day = Number(dayValue);
         if (!Number.isFinite(month) || !Number.isFinite(day) || month < 1 || month > 12 || day < 1 || day > 31) return null;
-        const todayDate = todayStart();
+        const todayDate = new Date(fromDate);
+        todayDate.setHours(0, 0, 0, 0);
         for (let offset = 0; offset <= 430; offset += 1) {
           const candidate = new Date(todayDate.getTime() + offset * 86400000);
           const lunar = lunarMonthDay(candidate);
@@ -1850,12 +1895,13 @@
         return null;
       }
 
-      function nextYearlyDate(monthValue, dayValue, calendarValue = "solar") {
-        if (calendarValue === "lunar") return nextLunarYearlyDate(monthValue, dayValue);
+      function nextYearlyDate(monthValue, dayValue, calendarValue = "solar", fromDate = todayStart()) {
+        if (calendarValue === "lunar") return nextLunarYearlyDate(monthValue, dayValue, fromDate);
         const month = Number(monthValue);
         const day = Number(dayValue);
         if (!Number.isFinite(month) || !Number.isFinite(day) || month < 1 || month > 12 || day < 1 || day > 31) return null;
-        const todayDate = todayStart();
+        const todayDate = new Date(fromDate);
+        todayDate.setHours(0, 0, 0, 0);
         const buildDate = (year) => {
           const lastDay = new Date(year, month, 0).getDate();
           return new Date(year, month - 1, Math.min(day, lastDay));
@@ -1865,23 +1911,41 @@
         return buildDate(todayDate.getFullYear() + 1);
       }
 
+      function parsedRecurrenceRule(item) {
+        if (!item.recurrence_rule) return {};
+        try {
+          const parsed = JSON.parse(item.recurrence_rule);
+          return parsed && typeof parsed === "object" ? parsed : {};
+        } catch (error) {
+          return {};
+        }
+      }
+
       function nextRecurringOccurrence(item) {
         if (!isRecurringTask(item) && !isRecurringMeeting(item)) return null;
-        if (item.recurrence_frequency === "daily") return todayStart();
+        const rule = parsedRecurrenceRule(item);
+        const startDate = parseDateOnly(rule.start_date);
+        const endDate = parseDateOnly(rule.end_date);
+        const todayDate = todayStart();
+        const baseDate = startDate && startDate > todayDate ? startDate : todayDate;
+        if (endDate && baseDate > endDate) return null;
+        if (item.recurrence_frequency === "daily") return baseDate;
         if (item.recurrence_frequency === "weekly") {
           const weekdays = weekdayIndexes(`${item.recurrence_weekdays || ""} ${item.recurrence_natural || ""}`);
           if (!weekdays.length) return null;
-          const todayDate = todayStart();
-          const todayWeekday = todayDate.getDay();
+          const todayWeekday = baseDate.getDay();
           const offsets = weekdays.map((weekday) => (weekday - todayWeekday + 7) % 7);
           const nextOffset = Math.min(...offsets);
-          return new Date(todayDate.getTime() + nextOffset * 86400000);
+          const nextDate = new Date(baseDate.getTime() + nextOffset * 86400000);
+          return endDate && nextDate > endDate ? null : nextDate;
         }
         if (item.recurrence_frequency === "monthly") {
-          return nextMonthlyDate(item.recurrence_day);
+          const nextDate = nextMonthlyDate(item.recurrence_day, baseDate);
+          return endDate && nextDate && nextDate > endDate ? null : nextDate;
         }
         if (item.recurrence_frequency === "yearly") {
-          return nextYearlyDate(item.recurrence_month, item.recurrence_day, item.recurrence_calendar);
+          const nextDate = nextYearlyDate(item.recurrence_month, item.recurrence_day, item.recurrence_calendar, baseDate);
+          return endDate && nextDate && nextDate > endDate ? null : nextDate;
         }
         return null;
       }
@@ -1899,6 +1963,8 @@
       function shouldShowInTaskList(item) {
         if (item.type === "not_todo" || item.done) return false;
         if (isRecurringTask(item)) return isRecurringInAttentionWindow(item);
+        const availableDate = parseDateOnly(item.available_date);
+        if (availableDate) return daysFromToday(availableDate) <= 0;
         const dueDate = parseDateOnly(item.due_date);
         if (dueDate) return daysFromToday(dueDate) <= 0;
         return isCreatedToday(item);
@@ -1956,14 +2022,29 @@
         return taskSortValue(item.task);
       }
 
+      function agendaStartTimeValue(item) {
+        const value = item.kind === "meeting" ? item.meeting.starts_at : item.task.starts_at;
+        if (!value) return null;
+        const parsed = new Date(value);
+        return Number.isNaN(parsed.getTime()) ? null : parsed.getTime();
+      }
+
       function agendaTimeValue(item) {
-        if (item.kind === "meeting") return new Date(item.meeting.starts_at).getTime();
+        const startTime = agendaStartTimeValue(item);
+        if (startTime !== null) return startTime;
+        if (item.kind === "meeting") return new Date(item.meeting.created_at || Date.now()).getTime();
+        if (item.task.available_date) return parseDateOnly(item.task.available_date).getTime();
         if (item.task.due_date) return parseDateOnly(item.task.due_date).getTime();
         return new Date(item.task.created_at).getTime();
       }
 
       function sortedAgendaItems(items) {
         return items.slice().sort((a, b) => {
+          const aStart = agendaStartTimeValue(a);
+          const bStart = agendaStartTimeValue(b);
+          if (aStart !== null && bStart !== null) return aStart - bStart;
+          if (aStart !== null) return -1;
+          if (bStart !== null) return 1;
           const priorityDifference = agendaSortValue(b) - agendaSortValue(a);
           if (priorityDifference !== 0) return priorityDifference;
           return agendaTimeValue(a) - agendaTimeValue(b);
@@ -2032,8 +2113,46 @@
         return filters.contexts.includes(item.account_context || "personal") && filters.kinds.includes(kind);
       }
 
+      function shouldShowCalendarTask(item) {
+        if (item.done) return false;
+        if (isRecurringMeeting(item)) return true;
+        if (!item.starts_at) return true;
+        const startsAt = new Date(item.starts_at);
+        if (Number.isNaN(startsAt.getTime())) return true;
+        return startsAt >= todayStart();
+      }
+
+      function taskEntryIsTask() {
+        return taskEntryType.value === "task" || taskEntryType.value === "recurring_task";
+      }
+
+      function taskEntryIsMeeting() {
+        return false;
+      }
+
+      function taskEntryIsRecurringTask() {
+        return taskEntryType.value === "recurring_task";
+      }
+
+      function taskEntryIsRecurringMeeting() {
+        return false;
+      }
+
+      function updateTaskEntryVisibility() {
+        taskFields.hidden = !taskEntryIsTask();
+        meetingFields.hidden = !taskEntryIsMeeting();
+        taskOneTimeFields.hidden = taskEntryType.value !== "task";
+        taskTimeFields.hidden = taskEntryType.value !== "task";
+        taskRecurrenceFields.hidden = !taskEntryIsRecurringTask();
+        calendarOneTimeFields.hidden = taskEntryType.value !== "meeting";
+        calendarRecurrenceFields.hidden = !taskEntryIsRecurringMeeting();
+        updateRecurrenceVisibility("task");
+        updateRecurrenceVisibility("calendar");
+        updateTaskPriorityPreview();
+      }
+
       function updateTaskPriorityPreview() {
-        const isRecurring = document.querySelector("#task-is-recurring").checked;
+        const isRecurring = taskEntryIsRecurringTask();
         const importance = importanceWithRecurrence(
           document.querySelector("#task-importance").value,
           document.querySelector("#task-recurrence-natural").value.trim(),
@@ -2042,7 +2161,7 @@
         );
         const urgency = urgencyWithDueDate(
           "medium",
-          document.querySelector("#task-due-date").value || null,
+          taskEntryType.value === "task" ? document.querySelector("#task-due-date").value || null : null,
           false,
         );
         const priority = evaluateTaskPriority(importance, urgency);
@@ -2128,12 +2247,12 @@
         const todos = items
           .filter((item) => item.type !== "not_todo" && !item.done && matchesTaskFilters(item, filters))
           .map((item) => ({ kind: "task", task: item }));
-        const meetings = calendarItems
-          .filter((item) => !item.done)
+        const calendarTasks = calendarItems
+          .filter((item) => shouldShowCalendarTask(item))
           .filter((item) => matchesMeetingFilters(item, filters))
           .filter((item) => isRecurringMeeting(item) || !hasCompleteOutcome("meeting", item, currentActivities))
           .map((item) => ({ kind: "meeting", meeting: item }));
-        const agendaItems = sortedAgendaItems([...todos, ...meetings]);
+        const agendaItems = sortedAgendaItems([...calendarTasks, ...todos]);
         if (!agendaItems.length) {
           taskList.innerHTML = '<div class="empty">没有符合筛选条件的任务</div>';
           renderNotTodos(items);
@@ -2151,7 +2270,13 @@
           const button = completeButtons[index];
           button.addEventListener("click", async () => {
             button.disabled = true;
-            await api(`/tasks/${button.getAttribute("data-task-id")}/complete`, { method: "POST" });
+            const taskId = Number(button.getAttribute("data-task-id"));
+            const task = currentTasks.find((item) => item.id === taskId);
+            if (task && !isRecurringTask(task)) {
+              await saveBriefingOutcome("task", task, "complete", "从任务一览点击完成");
+            } else {
+              await api(`/tasks/${taskId}/complete`, { method: "POST" });
+            }
             await refresh();
           });
         }
@@ -2160,7 +2285,13 @@
           const button = completeMeetingButtons[index];
           button.addEventListener("click", async () => {
             button.disabled = true;
-            await api(`/calendar/events/${button.getAttribute("data-event-id")}/complete`, { method: "POST" });
+            const eventId = Number(button.getAttribute("data-event-id"));
+            const meeting = currentCalendarEvents.find((item) => item.id === eventId);
+            if (meeting && !isRecurringMeeting(meeting)) {
+              await saveBriefingOutcome("meeting", meeting, "complete", "从任务一览点击参加");
+            } else {
+              await api(`/calendar/events/${eventId}/complete`, { method: "POST" });
+            }
             await refresh();
           });
         }
@@ -2177,6 +2308,40 @@
         const recurrenceLabel = labelRecurrence(item);
         const recurringAttention = isRecurringInAttentionWindow(item);
         const nextOccurrence = nextRecurringOccurrence(item);
+        const taskIsRecurring = isRecurringTask(item);
+        const taskScheduleEditFields = `
+                <div class="row">
+                  <label>开始时间<input name="starts_at" type="datetime-local" value="${escapeAttribute(localDateTimeInputValue(item.starts_at))}" /></label>
+                  <label>结束时间<input name="ends_at" type="datetime-local" value="${escapeAttribute(localDateTimeInputValue(item.ends_at))}" /></label>
+                </div>
+                <label>地点<input name="location" value="${escapeAttribute(item.location || "")}" /></label>
+              `;
+        const taskTimingEditFields = taskIsRecurring
+          ? ""
+          : `
+                <div class="row">
+                  <label>可执行日期<input name="available_date" type="date" value="${escapeAttribute(item.available_date || "")}" /></label>
+                  <label>截止日期<input name="due_date" type="date" value="${escapeAttribute(item.due_date || "")}" /></label>
+                </div>
+              `;
+        const taskFrequency = item.recurrence_frequency || "daily";
+        const taskRecurrenceEditFields = taskIsRecurring
+          ? `
+                <label>定期任务备注<input name="recurrence_natural" value="${escapeAttribute(item.recurrence_natural || "")}" /></label>
+                <div class="row">
+                  <label>频率${selectHtml("recurrence_frequency", taskFrequency, [["daily", "每天"], ["weekly", "每周"], ["monthly", "每月"], ["yearly", "每年"]])}</label>
+                  <label>历法${selectHtml("recurrence_calendar", item.recurrence_calendar || "solar", [["solar", "国历"], ["lunar", "农历"]])}</label>
+                </div>
+                ${taskFrequency === "weekly" ? `<label>星期<input name="recurrence_weekdays" value="${escapeAttribute(item.recurrence_weekdays || "")}" placeholder="例：周四、周六" /></label>` : ""}
+                ${taskFrequency === "monthly" ? `<label>指定日<input name="recurrence_day" type="number" min="1" max="31" value="${escapeAttribute(item.recurrence_day || "")}" /></label>` : ""}
+                ${taskFrequency === "yearly" ? `
+                  <div class="row">
+                    <label>指定月<input name="recurrence_month" type="number" min="1" max="12" value="${escapeAttribute(item.recurrence_month || "")}" /></label>
+                    <label>指定日<input name="recurrence_day" type="number" min="1" max="31" value="${escapeAttribute(item.recurrence_day || "")}" /></label>
+                  </div>
+                ` : ""}
+              `
+          : "";
         node.innerHTML = `
             <summary class="summary-row">
               <span class="item-title">${escapeHtml(item.title)}</span>
@@ -2191,34 +2356,30 @@
                 ${urgency !== item.urgency ? '<span class="pill">截止日临近</span>' : ""}
                 ${recurringAttention ? '<span class="pill">定期快到了</span>' : ""}
                 ${item.todo_kind === "recurring" ? '<span class="pill">定期</span>' : '<span class="pill">非定期</span>'}
-                ${item.due_date ? escapeHtml(formatDateOnlyLocal(item.due_date)) : "无截止日期"}
+                ${item.starts_at ? `<span class="pill">${escapeHtml(formatDateTime(item.starts_at))}</span>` : ""}
+                ${item.available_date ? `可执行：${escapeHtml(formatDateOnlyLocal(item.available_date))}` : ""}
+                ${item.due_date ? `截止：${escapeHtml(formatDateOnlyLocal(item.due_date))}` : "无截止日期"}
                 ${item.done ? " · done" : ""}
               </div>
+              ${item.ends_at ? `<div class="meta">结束：${escapeHtml(formatDateTime(item.ends_at))}</div>` : ""}
+              ${item.location ? `<div class="meta">地点：${escapeHtml(item.location)}</div>` : ""}
               ${recurrenceLabel ? `<div class="meta">定期：${escapeHtml(recurrenceLabel)}</div>` : ""}
               ${recurringAttention && nextOccurrence ? `<div class="meta">下次发生：${escapeHtml(formatDateOnlyLocal(nextOccurrence))}</div>` : ""}
-              <form class="task-edit-form" data-task-id="${item.id}" onsubmit="return false">
-                <label>任务<input name="title" value="${escapeAttribute(item.title)}" required /></label>
+              <form class="task-edit-form" data-task-id="${item.id}" data-recurring="${taskIsRecurring ? "true" : "false"}" onsubmit="return false">
+                <label>任务 <span class="required-mark">*</span><input name="title" value="${escapeAttribute(item.title)}" required /></label>
                 <label>描述<textarea name="description">${escapeHtml(item.description || "")}</textarea></label>
                 <label>分类${selectHtml("context", item.context || "personal", [["personal", "个人"], ["company", "公司"]])}</label>
                 <div class="row">
                   <label>重要度${selectHtml("importance", item.importance || "medium", [["medium", "普通"], ["high", "重要"], ["low", "不重要"]])}</label>
                   <label>紧急度${selectHtml("urgency", item.urgency || "medium", [["medium", "普通"], ["high", "紧急"], ["low", "不紧急"]])}</label>
                 </div>
-                <label>截止日期<input name="due_date" type="date" value="${escapeAttribute(item.due_date || "")}" /></label>
-                <label>定期任务<input name="recurrence_natural" value="${escapeAttribute(item.recurrence_natural || "")}" /></label>
-                <div class="row">
-                  <label>频率${selectHtml("recurrence_frequency", item.recurrence_frequency || "", [["", "非定期"], ["daily", "每天"], ["weekly", "每周"], ["monthly", "每月"], ["yearly", "每年"]])}</label>
-                  <label>历法${selectHtml("recurrence_calendar", item.recurrence_calendar || "solar", [["solar", "国历"], ["lunar", "农历"]])}</label>
-                </div>
-                <div class="row">
-                  <label>月<input name="recurrence_month" type="number" min="1" max="12" value="${escapeAttribute(item.recurrence_month || "")}" /></label>
-                  <label>日<input name="recurrence_day" type="number" min="1" max="31" value="${escapeAttribute(item.recurrence_day || "")}" /></label>
-                </div>
-                <label>星期<input name="recurrence_weekdays" value="${escapeAttribute(item.recurrence_weekdays || "")}" /></label>
+                ${taskTimingEditFields}
+                ${taskScheduleEditFields}
+                ${taskRecurrenceEditFields}
                 <button type="submit">保存修改</button>
                 <div class="status"></div>
               </form>
-              ${item.done ? "" : `<button class="secondary complete-task" data-task-id="${item.id}" type="button">完工</button>`}
+              ${item.done ? "" : `<button class="secondary complete-task" data-task-id="${item.id}" type="button">${isRecurringTask(item) ? "结束定期" : "完成"}</button>`}
             </div>
           `;
         target.appendChild(node);
@@ -2228,24 +2389,42 @@
         const node = document.createElement("details");
         node.className = "item";
         const recurrenceLabel = labelRecurrence(item);
+        const meetingIsRecurring = isRecurringMeeting(item);
+        const meetingFrequency = item.recurrence_frequency || "daily";
+        const meetingRecurrenceEditFields = meetingIsRecurring
+          ? `
+              <label>定期活动备注<input name="recurrence_natural" value="${escapeAttribute(item.recurrence_natural || "")}" /></label>
+              <div class="row">
+                <label>频率${selectHtml("recurrence_frequency", meetingFrequency, [["daily", "每天"], ["weekly", "每周"], ["monthly", "每月"], ["yearly", "每年"]])}</label>
+              </div>
+              ${meetingFrequency === "weekly" ? `<label>星期<input name="recurrence_weekdays" value="${escapeAttribute(item.recurrence_weekdays || "")}" placeholder="例：周一、周三" /></label>` : ""}
+              ${meetingFrequency === "monthly" ? `<label>指定日<input name="recurrence_day" type="number" min="1" max="31" value="${escapeAttribute(item.recurrence_day || "")}" /></label>` : ""}
+              ${meetingFrequency === "yearly" ? `
+                <div class="row">
+                  <label>指定月<input name="recurrence_month" type="number" min="1" max="12" value="${escapeAttribute(item.recurrence_month || "")}" /></label>
+                  <label>指定日<input name="recurrence_day" type="number" min="1" max="31" value="${escapeAttribute(item.recurrence_day || "")}" /></label>
+                </div>
+              ` : ""}
+            `
+          : "";
         node.innerHTML = `
           <summary class="summary-row">
             <span class="item-title">${escapeHtml(item.title)}</span>
-            <span class="pill">会议</span>
+            <span class="pill">活动</span>
           </summary>
           <div class="detail-body">
             <div class="meta">
               <span class="pill">${escapeHtml(labelContext(item.account_context))}</span>
               <span class="pill">重要度：${escapeHtml(labelLevel(item.importance || "high"))}</span>
-              <span class="pill">${isRecurringMeeting(item) ? "定期" : "非定期"}</span>
+              <span class="pill">${meetingIsRecurring ? "定期" : "非定期"}</span>
               <span class="pill">${escapeHtml(item.source || "manual")}</span>
               ${formatDateTime(item.starts_at)}${item.ends_at ? ` - ${formatDateTime(item.ends_at)}` : ""}
             </div>
             ${recurrenceLabel ? `<div class="meta">定期：${escapeHtml(recurrenceLabel)}</div>` : ""}
             ${item.location ? `<div class="meta">地点：${escapeHtml(item.location)}</div>` : ""}
             ${item.description ? `<div class="meta">${escapeHtml(item.description)}</div>` : ""}
-            <form class="meeting-edit-form" data-event-id="${item.id}" onsubmit="return false">
-              <label>会议<input name="title" value="${escapeAttribute(item.title)}" required /></label>
+            <form class="meeting-edit-form" data-event-id="${item.id}" data-recurring="${meetingIsRecurring ? "true" : "false"}" onsubmit="return false">
+              <label>活动 <span class="required-mark">*</span><input name="title" value="${escapeAttribute(item.title)}" required /></label>
               <label>描述<textarea name="description">${escapeHtml(item.description || "")}</textarea></label>
               <label>分类${selectHtml("account_context", item.account_context || "personal", [["personal", "个人"], ["company", "公司"]])}</label>
               <div class="row">
@@ -2253,27 +2432,15 @@
                 <label>来源${selectHtml("source", item.source || "manual", [["manual", "手动"], ["google", "Google Calendar"], ["apple", "Apple Calendar"], ["outlook", "Outlook Calendar"]])}</label>
               </div>
               <div class="row">
-                <label>开始<input name="starts_at" type="datetime-local" value="${escapeAttribute(localDateTimeInputValue(item.starts_at))}" required /></label>
+                <label>开始 <span class="required-mark">*</span><input name="starts_at" type="datetime-local" value="${escapeAttribute(localDateTimeInputValue(item.starts_at))}" required /></label>
                 <label>结束<input name="ends_at" type="datetime-local" value="${escapeAttribute(localDateTimeInputValue(item.ends_at))}" /></label>
               </div>
               <label>地点<input name="location" value="${escapeAttribute(item.location || "")}" /></label>
-              <div class="row">
-                <label>类型${selectHtml("event_kind", item.event_kind || "one_time", [["one_time", "非定期"], ["recurring", "定期"]])}</label>
-                <label>频率${selectHtml("recurrence_frequency", item.recurrence_frequency || "", [["", "非定期"], ["daily", "每天"], ["weekly", "每周"], ["monthly", "每月"], ["yearly", "每年"]])}</label>
-              </div>
-              <label>定期会议<input name="recurrence_natural" value="${escapeAttribute(item.recurrence_natural || "")}" /></label>
-              <div class="row">
-                <label>历法${selectHtml("recurrence_calendar", item.recurrence_calendar || "solar", [["solar", "国历"], ["lunar", "农历"]])}</label>
-                <label>星期<input name="recurrence_weekdays" value="${escapeAttribute(item.recurrence_weekdays || "")}" /></label>
-              </div>
-              <div class="row">
-                <label>月<input name="recurrence_month" type="number" min="1" max="12" value="${escapeAttribute(item.recurrence_month || "")}" /></label>
-                <label>日<input name="recurrence_day" type="number" min="1" max="31" value="${escapeAttribute(item.recurrence_day || "")}" /></label>
-              </div>
+              ${meetingRecurrenceEditFields}
               <button type="submit">保存修改</button>
               <div class="status"></div>
             </form>
-            ${item.done ? "" : `<button class="secondary complete-meeting" data-event-id="${item.id}" type="button">完工</button>`}
+            ${item.done ? "" : `<button class="secondary complete-meeting" data-event-id="${item.id}" type="button">${isRecurringMeeting(item) ? "结束定期" : "参加"}</button>`}
           </div>
         `;
         target.appendChild(node);
@@ -2377,7 +2544,7 @@
             node.innerHTML = `
               <div class="item-title">${escapeHtml(item.title)}</div>
               <div class="meta">
-                <span class="pill">会议</span>
+                <span class="pill">活动</span>
                 <span class="pill">${escapeHtml(labelContext(item.account_context))}</span>
                 ${formatDateTime(entry.completedAt)}
               </div>
@@ -2700,7 +2867,8 @@
 
       function scheduleDateForTask(item) {
         if (isRecurringTask(item)) return nextRecurringOccurrence(item);
-        return parseDateOnly(item.due_date);
+        if (item.starts_at) return new Date(item.starts_at);
+        return parseDateOnly(item.available_date) || parseDateOnly(item.due_date);
       }
 
       function scheduleDateForMeeting(item) {
@@ -2778,14 +2946,27 @@
         return outcomeIsComplete(existingOutcome(kind, item, activities));
       }
 
+      function completedTodayOutcome(kind, item, activities = currentActivities) {
+        const token = `target=${kind}:${item.id}`;
+        const start = todayStart();
+        const end = new Date(start);
+        end.setHours(23, 59, 59, 999);
+        return (activities || []).find((log) => {
+          if (!(log.note || "").includes(token) || !outcomeIsComplete(log)) return false;
+          const occurredAt = new Date(log.occurred_at);
+          return occurredAt >= start && occurredAt <= end;
+        });
+      }
+
       function completedBriefingEntries(data, activities = currentActivities) {
         const entries = [];
         const seen = new Set();
         const addEntry = (kind, item) => {
           const key = `${kind}:${item.id}`;
-          if (seen.has(key) || !hasCompleteOutcome(kind, item, activities)) return;
+          const log = completedTodayOutcome(kind, item, activities);
+          if (seen.has(key) || !log) return;
           seen.add(key);
-          entries.push({ kind, item });
+          entries.push({ kind, item, completedAt: log.occurred_at });
         };
         for (const item of (data.meetings || [])) addEntry("meeting", item);
         for (const item of (data.tasks || [])) addEntry("task", item);
@@ -2845,6 +3026,9 @@
         if (kind === "task" && outcome === "complete" && !isRecurringTask(item)) {
           await api(`/tasks/${item.id}/complete`, { method: "POST" });
         }
+        if (kind === "meeting" && outcome === "complete" && !isRecurringMeeting(item)) {
+          await api(`/calendar/events/${item.id}/complete`, { method: "POST" });
+        }
       }
 
       function makeScheduleEntries(tasks, meetings) {
@@ -2857,6 +3041,7 @@
           entries.push({ bucket, dateValue, kind: "task", item });
         }
         for (const item of meetings) {
+          if (item.done) continue;
           const dateValue = scheduleDateForMeeting(item);
           const bucket = scheduleBucket(dateValue);
           if (bucket === "tomorrow" && !isRecurringMeeting(item)) continue;
@@ -2904,11 +3089,13 @@
               : "";
             const dateLabel = entry.kind === "meeting" && !isRecurringMeeting(item)
               ? formatDateTime(item.starts_at)
+              : entry.kind === "task" && item.starts_at
+                ? formatDateTime(item.starts_at)
               : formatDateOnlyLocal(entry.dateValue);
             child.innerHTML = `
               <div class="summary-row">
                 <span class="item-title">${escapeHtml(item.title)}</span>
-                <span class="pill">${entry.kind === "meeting" ? "会议" : "任务"}</span>
+                <span class="pill">${entry.kind === "meeting" ? "活动" : "任务"}</span>
                 ${recurrence}
               </div>
               <div class="meta">
@@ -2989,8 +3176,8 @@
               ${reportLine("What", item.title)}
               ${reportLine("Why", item.description || (typeLabel === "Not-to-do" ? "需要避免或提醒自己的约束" : "今日需要处理或关注"))}
               ${reportLine("Who", "我")}
-              ${reportLine("When", item.due_date ? formatDateOnlyLocal(item.due_date) : "今天 / 未指定截止日期")}
-              ${reportLine("Where", "未指定")}
+              ${reportLine("When", item.starts_at ? `${formatDateTime(item.starts_at)}${item.ends_at ? ` - ${formatDateTime(item.ends_at)}` : ""}` : item.due_date ? formatDateOnlyLocal(item.due_date) : "今天 / 未指定截止日期")}
+              ${reportLine("Where", item.location || "未指定")}
               ${reportLine("How", `优先级：${labelPriority(priority)}，重要度：${labelLevel(importance)}，紧急度：${labelLevel(urgency)}`)}
               ${reportLine("How much", "未指定")}
             </div>
@@ -3003,12 +3190,12 @@
         return `
           <summary class="summary-row">
             <span class="item-title">${escapeHtml(item.title)}</span>
-            <span class="pill">会议</span>
+            <span class="pill">活动</span>
           </summary>
           <div class="detail-body">
             <div class="report-grid">
               ${reportLine("What", item.title)}
-              ${reportLine("Why", item.description || "当天会议，需要准备、参加或会后跟进")}
+              ${reportLine("Why", item.description || "当天活动，需要准备、参加或会后跟进")}
               ${reportLine("Who", labelContext(item.account_context))}
               ${reportLine("When", `${formatDateTime(item.starts_at)}${item.ends_at ? ` - ${formatDateTime(item.ends_at)}` : ""}`)}
               ${reportLine("Where", item.location || "未指定")}
@@ -3038,11 +3225,12 @@
             event.preventDefault();
             const status = form.querySelector(".status");
             setStatus(status, "保存中...");
-            const recurrenceNatural = form.elements.recurrence_natural.value.trim();
-            const recurrenceFrequency = form.elements.recurrence_frequency.value || null;
-            const todoKind = recurrenceFrequency || recurrenceNatural ? "recurring" : "one_time";
+            const isRecurring = form.getAttribute("data-recurring") === "true";
+            const recurrenceNatural = form.elements.recurrence_natural ? form.elements.recurrence_natural.value.trim() : "";
+            const recurrenceFrequency = isRecurring && form.elements.recurrence_frequency ? form.elements.recurrence_frequency.value || null : null;
+            const todoKind = isRecurring ? "recurring" : "one_time";
             const importance = importanceWithRecurrence(form.elements.importance.value, recurrenceNatural, null, todoKind);
-            const dueDate = form.elements.due_date.value || null;
+            const dueDate = form.elements.due_date ? form.elements.due_date.value || null : null;
             const urgency = urgencyWithDueDate(form.elements.urgency.value, dueDate, false);
             const payload = {
               title: form.elements.title.value.trim(),
@@ -3054,12 +3242,17 @@
               urgency,
               priority: evaluateTaskPriority(importance, urgency),
               due_date: dueDate,
+              available_date: form.elements.available_date ? form.elements.available_date.value || null : null,
+              starts_at: localDateTimeValue(form.elements.starts_at.value),
+              ends_at: localDateTimeValue(form.elements.ends_at.value),
+              location: form.elements.location.value.trim() || null,
+              source: "manual",
               recurrence_natural: recurrenceNatural || null,
               recurrence_frequency: recurrenceFrequency,
-              recurrence_calendar: form.elements.recurrence_calendar.value,
-              recurrence_month: form.elements.recurrence_month.value ? Number(form.elements.recurrence_month.value) : null,
-              recurrence_day: form.elements.recurrence_day.value ? Number(form.elements.recurrence_day.value) : null,
-              recurrence_weekdays: form.elements.recurrence_weekdays.value.trim() || null,
+              recurrence_calendar: form.elements.recurrence_calendar ? form.elements.recurrence_calendar.value : null,
+              recurrence_month: form.elements.recurrence_month && form.elements.recurrence_month.value ? Number(form.elements.recurrence_month.value) : null,
+              recurrence_day: form.elements.recurrence_day && form.elements.recurrence_day.value ? Number(form.elements.recurrence_day.value) : null,
+              recurrence_weekdays: form.elements.recurrence_weekdays ? form.elements.recurrence_weekdays.value.trim() || null : null,
             };
             try {
               await api(`/tasks/${form.getAttribute("data-task-id")}`, {
@@ -3083,9 +3276,10 @@
             event.preventDefault();
             const status = form.querySelector(".status");
             setStatus(status, "保存中...");
-            const recurrenceNatural = form.elements.recurrence_natural.value.trim();
-            const recurrenceFrequency = form.elements.recurrence_frequency.value || null;
-            const eventKind = form.elements.event_kind.value === "recurring" || recurrenceFrequency || recurrenceNatural ? "recurring" : "one_time";
+            const isRecurring = form.getAttribute("data-recurring") === "true";
+            const recurrenceNatural = form.elements.recurrence_natural ? form.elements.recurrence_natural.value.trim() : "";
+            const recurrenceFrequency = isRecurring && form.elements.recurrence_frequency ? form.elements.recurrence_frequency.value || null : null;
+            const eventKind = isRecurring ? "recurring" : "one_time";
             const payload = {
               title: form.elements.title.value.trim(),
               description: form.elements.description.value.trim() || null,
@@ -3098,10 +3292,10 @@
               event_kind: eventKind,
               recurrence_natural: recurrenceNatural || null,
               recurrence_frequency: recurrenceFrequency,
-              recurrence_calendar: form.elements.recurrence_calendar.value,
-              recurrence_month: form.elements.recurrence_month.value ? Number(form.elements.recurrence_month.value) : null,
-              recurrence_day: form.elements.recurrence_day.value ? Number(form.elements.recurrence_day.value) : null,
-              recurrence_weekdays: form.elements.recurrence_weekdays.value.trim() || null,
+              recurrence_calendar: "solar",
+              recurrence_month: form.elements.recurrence_month && form.elements.recurrence_month.value ? Number(form.elements.recurrence_month.value) : null,
+              recurrence_day: form.elements.recurrence_day && form.elements.recurrence_day.value ? Number(form.elements.recurrence_day.value) : null,
+              recurrence_weekdays: form.elements.recurrence_weekdays ? form.elements.recurrence_weekdays.value.trim() || null : null,
             };
             try {
               await api(`/calendar/events/${form.getAttribute("data-event-id")}`, {
@@ -3169,43 +3363,44 @@
 
       function updateRecurrenceVisibility(prefix) {
         const frequency = document.querySelector(`#${prefix}-recurrence-frequency`).value;
+        const monthlyMode = document.querySelector(`#${prefix}-recurrence-monthly-mode`).value;
+        const modeFields = document.querySelector(`#${prefix}-recurrence-mode-fields`);
         const weeklyFields = document.querySelector(`#${prefix}-recurrence-weekly-fields`);
         const nthFields = document.querySelector(`#${prefix}-recurrence-nth-fields`);
         const dateFields = document.querySelector(`#${prefix}-recurrence-date-fields`);
+        const monthField = document.querySelector(`#${prefix}-recurrence-month-field`);
+        const dayField = document.querySelector(`#${prefix}-recurrence-day-field`);
+        const usesDatePattern = frequency === "monthly" || frequency === "yearly";
+        const usesDayOfMonth = usesDatePattern && monthlyMode === "day_of_month";
+        const usesNthWeekday = usesDatePattern && monthlyMode === "nth_weekday";
+        if (modeFields) modeFields.hidden = !usesDatePattern;
         if (weeklyFields) weeklyFields.hidden = frequency !== "weekly";
-        if (nthFields) nthFields.hidden = frequency !== "monthly" && frequency !== "yearly";
-        if (dateFields) dateFields.hidden = frequency !== "monthly" && frequency !== "yearly";
+        if (nthFields) nthFields.hidden = !usesNthWeekday;
+        if (dateFields) dateFields.hidden = !usesDayOfMonth;
+        if (monthField) monthField.hidden = frequency !== "yearly";
+        if (dayField) dayField.hidden = !usesDayOfMonth;
       }
 
       function bindTaskPriorityPreview() {
-        taskEntryType.addEventListener("change", () => {
-          const isMeeting = taskEntryType.value === "meeting";
-          taskFields.hidden = isMeeting;
-          meetingFields.hidden = !isMeeting;
-          updateTaskPriorityPreview();
-        });
-        document.querySelector("#calendar-is-recurring").addEventListener("change", () => {
-          document.querySelector("#calendar-recurrence-fields").hidden = !document.querySelector("#calendar-is-recurring").checked;
-          updateRecurrenceVisibility("calendar");
-        });
+        taskEntryType.addEventListener("change", updateTaskEntryVisibility);
         document.querySelector("#task-importance").addEventListener("change", updateTaskPriorityPreview);
         document.querySelector("#task-due-date").addEventListener("change", updateTaskPriorityPreview);
-        document.querySelector("#task-is-recurring").addEventListener("change", () => {
-          document.querySelector("#task-recurrence-fields").hidden = !document.querySelector("#task-is-recurring").checked;
-          updateRecurrenceVisibility("task");
-          updateTaskPriorityPreview();
-        });
+        document.querySelector("#task-available-date").addEventListener("change", updateTaskPriorityPreview);
         document.querySelector("#task-recurrence-natural").addEventListener("input", updateTaskPriorityPreview);
         document.querySelector("#task-recurrence-frequency").addEventListener("change", () => {
           updateRecurrenceVisibility("task");
           updateTaskPriorityPreview();
         });
+        document.querySelector("#task-recurrence-monthly-mode").addEventListener("change", () => {
+          updateRecurrenceVisibility("task");
+        });
         document.querySelector("#calendar-recurrence-frequency").addEventListener("change", () => {
           updateRecurrenceVisibility("calendar");
         });
-        updateRecurrenceVisibility("task");
-        updateRecurrenceVisibility("calendar");
-        updateTaskPriorityPreview();
+        document.querySelector("#calendar-recurrence-monthly-mode").addEventListener("change", () => {
+          updateRecurrenceVisibility("calendar");
+        });
+        updateTaskEntryVisibility();
       }
 
       function escapeHtml(value) {
@@ -3286,14 +3481,18 @@
         setStatus(taskStatus, "保存中...");
         const title = document.querySelector("#task-title").value.trim();
         const descriptionInput = document.querySelector("#task-description");
-        if (taskEntryType.value === "meeting") {
-          const isRecurringMeetingInput = document.querySelector("#calendar-is-recurring").checked;
+        if (!title) {
+          setStatus(taskStatus, "请填写内容", true);
+          return;
+        }
+        if (taskEntryIsMeeting()) {
+          const isRecurringMeetingInput = taskEntryIsRecurringMeeting();
           const meetingRule = isRecurringMeetingInput ? buildRecurrenceRule("calendar", { withTime: true }) : null;
           const startValue = isRecurringMeetingInput
             ? localDateTimeFromParts(meetingRule.start_date, meetingRule.start_time)
             : localDateTimeValue(document.querySelector("#calendar-start").value);
           if (!startValue) {
-            setStatus(taskStatus, isRecurringMeetingInput ? "请填写定期会议的开始日期和开始时刻" : "请填写会议开始时间", true);
+            setStatus(taskStatus, isRecurringMeetingInput ? "请填写定期活动的开始日期和开始时刻" : "请填写活动开始时间", true);
             return;
           }
           const meetingNote = document.querySelector("#calendar-recurrence-natural").value.trim();
@@ -3319,26 +3518,29 @@
           try {
             await api("/calendar/events", { method: "POST", body: JSON.stringify(payload) });
             taskForm.reset();
-            taskFields.hidden = false;
-            meetingFields.hidden = true;
-            document.querySelector("#task-recurrence-fields").hidden = true;
-            document.querySelector("#calendar-recurrence-fields").hidden = true;
-            updateRecurrenceVisibility("task");
-            updateRecurrenceVisibility("calendar");
-            setStatus(taskStatus, "会议已加入");
+            updateTaskEntryVisibility();
+            setStatus(taskStatus, "活动已加入");
             await refresh();
           } catch (error) {
-            setStatus(taskStatus, "会议保存失败", true);
+            setStatus(taskStatus, "活动保存失败", true);
           }
           return;
         }
-        const isRecurring = document.querySelector("#task-is-recurring").checked;
-        const taskRule = isRecurring ? buildRecurrenceRule("task", { withCalendar: true }) : null;
+        const isRecurring = taskEntryIsRecurringTask();
+        const taskRule = isRecurring ? buildRecurrenceRule("task", { withCalendar: true, withTime: true }) : null;
+        if (isRecurring && !taskRule.start_date) {
+          setStatus(taskStatus, "请填写定期任务的开始日期", true);
+          return;
+        }
         const recurrenceNatural = document.querySelector("#task-recurrence-natural").value.trim();
         const taskWeekdays = taskRule ? recurrenceWeekdaysText(taskRule) : null;
         const todoKind = isRecurring ? "recurring" : "one_time";
         const importance = importanceWithRecurrence(document.querySelector("#task-importance").value, recurrenceNatural, null, todoKind);
-        const dueDate = document.querySelector("#task-due-date").value || null;
+        const dueDate = isRecurring ? null : document.querySelector("#task-due-date").value || null;
+        const availableDate = isRecurring ? null : document.querySelector("#task-available-date").value || null;
+        const startValue = isRecurring
+          ? localDateTimeFromParts(taskRule.start_date, taskRule.start_time)
+          : localDateTimeValue(document.querySelector("#task-start").value);
         const urgency = urgencyWithDueDate("medium", dueDate, false);
         const payload = {
           title,
@@ -3350,6 +3552,11 @@
           importance,
           urgency,
           due_date: dueDate,
+          available_date: availableDate,
+          starts_at: startValue,
+          ends_at: isRecurring ? addMinutesToIso(startValue, taskRule.duration_minutes) : localDateTimeValue(document.querySelector("#task-end").value),
+          location: document.querySelector("#task-location").value.trim() || null,
+          source: "manual",
           recurrence_natural: taskRule ? recurrenceSummary(taskRule, recurrenceNatural) : null,
           recurrence_frequency: taskRule ? taskRule.frequency : null,
           recurrence_calendar: taskRule ? taskRule.calendar : null,
@@ -3361,12 +3568,7 @@
         try {
           await api("/tasks", { method: "POST", body: JSON.stringify(payload) });
           taskForm.reset();
-          taskFields.hidden = false;
-          meetingFields.hidden = true;
-          document.querySelector("#task-recurrence-fields").hidden = true;
-          document.querySelector("#calendar-recurrence-fields").hidden = true;
-          updateRecurrenceVisibility("task");
-          updateRecurrenceVisibility("calendar");
+          updateTaskEntryVisibility();
           setStatus(taskStatus, "已添加");
           await refresh();
         } catch (error) {

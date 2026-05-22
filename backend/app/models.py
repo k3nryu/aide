@@ -31,6 +31,11 @@ class TaskDB(Base):
     advanced_body = Column(Text)
     done = Column(Boolean, default=False)
     due_date = Column(Date)
+    available_date = Column(Date)
+    starts_at = Column(DateTime)
+    ends_at = Column(DateTime)
+    location = Column(String(255))
+    source = Column(String(50), default="manual")
     completed_at = Column(DateTime)
     created_at = Column(DateTime, default=datetime.utcnow)
 
