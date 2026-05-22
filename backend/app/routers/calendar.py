@@ -31,8 +31,9 @@ def list_calendar_events(
     all_events: bool = False,
     db: Session = Depends(get_db),
 ):
-    query = db.query(CalendarEventDB).filter((CalendarEventDB.done == False) | (CalendarEventDB.done == None))
+    query = db.query(CalendarEventDB)
     if not all_events:
+        query = query.filter((CalendarEventDB.done == False) | (CalendarEventDB.done == None))
         target_date = event_date or date.today()
         start = datetime.combine(target_date, time.min)
         end = start + timedelta(days=1)

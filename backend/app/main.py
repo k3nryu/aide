@@ -32,6 +32,11 @@ def sync_prototype_schema():
         "advanced_format": "ALTER TABLE tasks ADD COLUMN advanced_format VARCHAR(50) DEFAULT 'markdown'",
         "advanced_body": "ALTER TABLE tasks ADD COLUMN advanced_body TEXT",
         "completed_at": "ALTER TABLE tasks ADD COLUMN completed_at TIMESTAMP",
+        "available_date": "ALTER TABLE tasks ADD COLUMN available_date DATE",
+        "starts_at": "ALTER TABLE tasks ADD COLUMN starts_at TIMESTAMP",
+        "ends_at": "ALTER TABLE tasks ADD COLUMN ends_at TIMESTAMP",
+        "location": "ALTER TABLE tasks ADD COLUMN location VARCHAR(255)",
+        "source": "ALTER TABLE tasks ADD COLUMN source VARCHAR(50) DEFAULT 'manual'",
     }
     with engine.begin() as connection:
         for column_name, statement in columns_to_add.items():

@@ -21,6 +21,7 @@ def _effective_task_values(values):
     importance = values.get("importance") or "medium"
     urgency = values.get("urgency") or "medium"
     due_date = values.get("due_date")
+    available_date = values.get("available_date")
 
     if recurrence and importance == "medium":
         importance = "high"
@@ -28,6 +29,8 @@ def _effective_task_values(values):
     if due_date and urgency != "high":
         if due_date <= date.today() + timedelta(days=3):
             urgency = "high"
+    if available_date and available_date <= date.today() and not due_date and urgency == "low":
+        urgency = "medium"
 
     if importance == "high" and urgency != "high":
         priority = "ultra"
@@ -145,6 +148,11 @@ def update_task(task_id: int, task: TaskUpdate, db: Session = Depends(get_db)):
         "advanced_format": item.advanced_format,
         "advanced_body": item.advanced_body,
         "due_date": item.due_date,
+        "available_date": item.available_date,
+        "starts_at": item.starts_at,
+        "ends_at": item.ends_at,
+        "location": item.location,
+        "source": item.source,
     }
     effective_values = _effective_task_values({**current_values, **values})
     for key in set(values) | {"priority", "importance", "urgency"}:
