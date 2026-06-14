@@ -940,6 +940,10 @@
                     分类
                     <select id="activity-category" name="category">
                       <option value="">不分类</option>
+                      <option value="growth">成长</option>
+                      <option value="work">工作</option>
+                      <option value="finance">财务</option>
+                      <option value="relationship">关系</option>
                       <option value="health">健康</option>
                       <option value="movement">移动</option>
                       <option value="food">饮食</option>
@@ -953,6 +957,45 @@
                     <input id="activity-time" name="occurred_at" type="datetime-local" />
                   </label>
                 </div>
+                <div class="row">
+                  <label>
+                    SOP
+                    <select id="activity-sop-model" name="sop_model">
+                      <option value="pdca" selected>PDCA</option>
+                      <option value="scaq">SCAQ</option>
+                      <option value="smart">SMART</option>
+                      <option value="aida">AIDA</option>
+                      <option value="5w2h">5W2H</option>
+                    </select>
+                  </label>
+                  <label>
+                    能量
+                    <select id="activity-energy" name="energy_level">
+                      <option value="">未记录</option>
+                      <option value="1">1</option>
+                      <option value="2">2</option>
+                      <option value="3">3</option>
+                      <option value="4">4</option>
+                      <option value="5">5</option>
+                    </select>
+                  </label>
+                </div>
+                <label>
+                  Plan
+                  <textarea id="activity-plan" name="plan" placeholder="原计划 / 意图"></textarea>
+                </label>
+                <label>
+                  Result
+                  <textarea id="activity-result" name="result" placeholder="实际结果"></textarea>
+                </label>
+                <label>
+                  Check
+                  <textarea id="activity-learning" name="learning" placeholder="观察 / 偏差 / 原因"></textarea>
+                </label>
+                <label>
+                  Act
+                  <textarea id="activity-next-action" name="next_action" placeholder="下一步最小动作"></textarea>
+                </label>
                 <label>
                   备注
                   <textarea id="activity-note" name="note" placeholder="可选"></textarea>
@@ -2187,16 +2230,39 @@
           return;
         }
         for (const item of items.slice(0, 12)) {
-          const node = document.createElement("div");
+          const hasDetails = item.plan || item.result || item.learning || item.next_action || item.energy_level;
+          const node = document.createElement(hasDetails ? "details" : "div");
           node.className = "item";
-          node.innerHTML = `
-            <div class="item-title">${escapeHtml(item.title)}</div>
-            <div class="meta">
+          const meta = `
               ${item.category ? `<span class="pill">${escapeHtml(item.category)}</span> ` : ""}
+              ${item.sop_model ? `<span class="pill">${escapeHtml(String(item.sop_model).toUpperCase())}</span> ` : ""}
+              ${item.energy_level ? `<span class="pill">能量 ${escapeHtml(item.energy_level)}/5</span> ` : ""}
               ${formatDateTime(item.occurred_at)}
-            </div>
+          `;
+          const summary = `
+            <div class="item-title">${escapeHtml(item.title)}</div>
+            <div class="meta">${meta}</div>
             ${item.note ? `<div class="meta">${escapeHtml(item.note)}</div>` : ""}
           `;
+          if (hasDetails) {
+            node.innerHTML = `
+              <summary class="summary-row">
+                <span class="item-title">${escapeHtml(item.title)}</span>
+                <span class="meta">${meta}</span>
+              </summary>
+              <div class="detail-body">
+                ${item.note ? `<div class="meta">${escapeHtml(item.note)}</div>` : ""}
+                <div class="report-grid">
+                  ${reportLine("Plan", item.plan)}
+                  ${reportLine("Result", item.result)}
+                  ${reportLine("Check", item.learning)}
+                  ${reportLine("Act", item.next_action)}
+                </div>
+              </div>
+            `;
+          } else {
+            node.innerHTML = summary;
+          }
           activityList.appendChild(node);
         }
       }
@@ -2234,6 +2300,10 @@
               </div>
             </div>
           </details>
+          <div class="item">
+            <div class="item-title">下一步</div>
+            ${(data.next_actions || []).map((item) => `<div class="meta">${escapeHtml(item)}</div>`).join("")}
+          </div>
           <div class="item">
             <div class="item-title">给想法的数据</div>
             ${(data.thought_inputs || []).map((item) => `<div class="meta">${escapeHtml(item)}</div>`).join("")}
@@ -3015,6 +3085,11 @@
           body: JSON.stringify({
             title: `${category}：${item.title}`,
             category,
+            sop_model: "pdca",
+            plan: item.title,
+            result: outcome === "complete" ? category : `未达成：${noteValue}`,
+            learning: noteValue || null,
+            next_action: outcome === "complete" ? null : `重新安排或拆小：${item.title}`,
             note: [
               `Aide outcome ${targetToken}`,
               `范围：${outcomeScopeLabel(outcomeScope(item))}`,
@@ -3450,6 +3525,12 @@
           title: document.querySelector("#activity-title").value.trim(),
           category: document.querySelector("#activity-category").value || null,
           note: document.querySelector("#activity-note").value.trim() || null,
+          sop_model: document.querySelector("#activity-sop-model").value || "pdca",
+          plan: document.querySelector("#activity-plan").value.trim() || null,
+          result: document.querySelector("#activity-result").value.trim() || null,
+          learning: document.querySelector("#activity-learning").value.trim() || null,
+          next_action: document.querySelector("#activity-next-action").value.trim() || null,
+          energy_level: document.querySelector("#activity-energy").value ? Number(document.querySelector("#activity-energy").value) : null,
           occurred_at: localDateTimeValue(document.querySelector("#activity-time").value),
         };
         try {

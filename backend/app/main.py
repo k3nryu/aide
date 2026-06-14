@@ -11,7 +11,8 @@ Base.metadata.create_all(bind=engine)
 
 def sync_prototype_schema():
     inspector = inspect(engine)
-    if "tasks" not in inspector.get_table_names():
+    table_names = inspector.get_table_names()
+    if "tasks" not in table_names:
         return
     task_columns = {column["name"] for column in inspector.get_columns("tasks")}
     columns_to_add = {
@@ -60,6 +61,20 @@ def sync_prototype_schema():
         with engine.begin() as connection:
             for column_name, statement in calendar_columns_to_add.items():
                 if column_name not in calendar_columns:
+                    connection.execute(text(statement))
+    if "activity_logs" in table_names:
+        activity_columns = {column["name"] for column in inspector.get_columns("activity_logs")}
+        activity_columns_to_add = {
+            "sop_model": "ALTER TABLE activity_logs ADD COLUMN sop_model VARCHAR(50) DEFAULT 'pdca'",
+            "plan": "ALTER TABLE activity_logs ADD COLUMN plan TEXT",
+            "result": "ALTER TABLE activity_logs ADD COLUMN result TEXT",
+            "learning": "ALTER TABLE activity_logs ADD COLUMN learning TEXT",
+            "next_action": "ALTER TABLE activity_logs ADD COLUMN next_action TEXT",
+            "energy_level": "ALTER TABLE activity_logs ADD COLUMN energy_level INTEGER",
+        }
+        with engine.begin() as connection:
+            for column_name, statement in activity_columns_to_add.items():
+                if column_name not in activity_columns:
                     connection.execute(text(statement))
 
 

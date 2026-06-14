@@ -4,7 +4,7 @@ Project-specific guidance for coding agents working on Aide.
 
 ## Product Intent
 
-Aide is a personal executive assistant system for daily briefing, tasks, not-to-dos, thought capture, finance tracking, and future AI memory.
+Aide is a personal executive assistant system for daily briefing, tasks, not-to-dos, thought capture, structured activity logging, finance tracking, and future AI memory.
 
 The product should feel calm, practical, mobile-first, and ADHD-friendly. Favor fast capture, clear defaults, short lists, and simple summaries.
 
@@ -18,13 +18,15 @@ Implemented:
 - SQLAlchemy ORM models
 - PostgreSQL-compatible database access
 - Docker Compose local backend service
+- Simple static browser UI
+- Structured PDCA-friendly activity log fields
+- Small standard-library unit tests for AI-assist heuristics
 
 Not implemented yet:
 
-- Frontend
+- Full web frontend
 - Authentication
 - Database migrations
-- Tests
 - RAG, Qdrant, and AI provider integration
 
 ## Architecture Guidelines

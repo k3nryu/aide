@@ -18,6 +18,7 @@ def create_activity_log(log: ActivityLogCreate, db: Session = Depends(get_db)):
     data = log.model_dump()
     if data["occurred_at"] is None:
         data["occurred_at"] = datetime.utcnow()
+    data["sop_model"] = data.get("sop_model") or "pdca"
     item = ActivityLogDB(**data)
     db.add(item)
     db.commit()

@@ -1,6 +1,6 @@
 # Vision
 
-Aide is a personal executive assistant system designed to help one person run their day with less friction.
+Aide is a personal executive assistant system designed to help one person run their day with less friction and keep improving through a simple PDCA loop.
 
 It should become a trusted place to answer:
 
@@ -10,6 +10,7 @@ It should become a trusted place to answer:
 - What needs follow-up?
 - What is happening with my money?
 - What should my assistant remember for later?
+- What did I actually do, what changed, and what is the next smallest action?
 
 ## Product Principles
 
@@ -33,6 +34,14 @@ Over time, Aide should remember useful facts, recurring themes, decisions, and p
 
 AI should support real workflows: summarize, retrieve, remind, organize, and connect ideas. It should not obscure the user's data or make important decisions without review.
 
+### PDCA Loop First
+
+Aide should help the user act, record, check, and adjust. The user remains responsible for action; Aide keeps the trail visible, turns outcomes into review material, and suggests the next small step.
+
+### SOP-Shaped Communication
+
+Aide can use lightweight thinking models such as PDCA, SCAQ, SMART, AIDA, and 5W2H when recording or reporting. These models should reduce friction, not create paperwork.
+
 ## Core Domains
 
 ### Daily Briefing
@@ -50,6 +59,10 @@ Intentional constraints and avoidance items. These are first-class records rathe
 ### Thoughts
 
 Fast capture for ideas, notes, reflections, and fragments that may later become tasks or memory.
+
+### Activity Logs
+
+Activity logs store what actually happened. They can stay as a quick one-line record, or include structured PDCA fields: plan, result, check/learning, next action, and energy level.
 
 ### Finance
 

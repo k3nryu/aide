@@ -11,6 +11,7 @@ Goal: make Aide useful for basic daily capture and review.
 - Support not-to-dos as first-class task records
 - Support thought capture and review
 - Support activity/life log capture for things that happened outside the task list
+- Support structured activity logs for a lightweight PDCA loop
 - Support daily briefing
 - Support lightweight money records
 - Add basic README and project docs
@@ -28,6 +29,7 @@ Goal: make the backend easier to maintain before adding larger features.
 - Add update/delete endpoints where useful
 - Add pagination or date filtering for growing lists
 - Add filters for activity logs by date and category
+- Add filters for activity logs by SOP model, next action, and low-energy records
 - Decide whether authentication is needed for the local deployment model
 
 ## Phase 3: Frontend
@@ -49,6 +51,7 @@ Goal: add AI where it improves daily use.
 - Summarize recent thoughts
 - Suggest follow-up tasks from thoughts
 - Identify stale tasks or recurring themes
+- Debate with the user from recent thoughts, actions, and PDCA records
 - Keep AI output reviewable and editable
 
 ## Phase 5: Personal Memory and RAG

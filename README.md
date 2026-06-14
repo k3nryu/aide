@@ -19,6 +19,7 @@ The project is currently an early backend-first prototype. It exposes a FastAPI 
 - Thought capture with optional tags
 - Thought-to-task suggestion drafts with user confirmation
 - Activity/life log capture for things that happened outside the task list
+- Structured activity logs with optional PDCA/SOP fields: plan, result, check/learning, next action, and energy level
 - Activity review draft with PDCA and STOW analysis
 - Money record capture for income and expenses
 - Financial independence dashboard with FI assets, fixed expense items, passive income, and safe withdrawal rate
