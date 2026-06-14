@@ -5,7 +5,6 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Optional
 
-
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "app"))
 
 from services.ai_assist import build_pdca_stow_analysis
@@ -55,6 +54,9 @@ class AIAssistTests(unittest.TestCase):
         self.assertIn("发布第一版目标草稿", result["pdca"]["check"])
         self.assertEqual(result["next_actions"], ["明天补一条可执行任务"])
         self.assertTrue(any("SCAQ" in item for item in result["stow"]["opportunities"]))
+        self.assertIn("最近 14 天", result["scaq"]["situation"])
+        self.assertIn("明天补一条可执行任务", result["smart_goal"]["specific"])
+        self.assertTrue(result["debate_prompts"])
 
 
 if __name__ == "__main__":

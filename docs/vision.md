@@ -2,6 +2,8 @@
 
 Aide is a personal executive assistant system designed to help one person run their day with less friction and keep improving through a simple PDCA loop.
 
+Its long-term purpose is to support personal growth, financial freedom, and life freedom. The user remains responsible for action; Aide records the trail, checks the loop, asks better questions, and turns feedback into the next small step.
+
 It should become a trusted place to answer:
 
 - What matters today?
@@ -11,6 +13,7 @@ It should become a trusted place to answer:
 - What is happening with my money?
 - What should my assistant remember for later?
 - What did I actually do, what changed, and what is the next smallest action?
+- What argument would challenge my current plan, and what should I adjust?
 
 ## Product Principles
 
@@ -41,6 +44,12 @@ Aide should help the user act, record, check, and adjust. The user remains respo
 ### SOP-Shaped Communication
 
 Aide can use lightweight thinking models such as PDCA, SCAQ, SMART, AIDA, and 5W2H when recording or reporting. These models should reduce friction, not create paperwork.
+
+Reports should default to concise SCAQ-style communication. Goals should be shaped with SMART when useful. Conversations can use debate prompts to challenge weak assumptions, especially when the user is exploring growth, money, habits, and long-term freedom.
+
+### Integrate, Do Not Rebuild Everything
+
+Aide should connect to other services when they already solve a job well. Calendar and schedule data should come from CalDAV or calendar providers instead of becoming a full scheduling system inside Aide.
 
 ## Core Domains
 

@@ -1,5 +1,5 @@
 from datetime import date, datetime
-from typing import List, Optional
+from typing import List, Literal, Optional
 
 from pydantic import BaseModel, Field
 
@@ -100,11 +100,14 @@ class ThoughtTaskSuggestionOut(BaseModel):
     suggestions: List[SuggestedTask]
 
 
+SopModel = Literal["pdca", "scaq", "smart", "aida", "5w2h", "freeform"]
+
+
 class ActivityLogCreate(BaseModel):
     title: str = Field(..., min_length=1, max_length=255)
     category: Optional[str] = Field(default=None, max_length=100)
     note: Optional[str] = None
-    sop_model: Optional[str] = Field(default="pdca", max_length=50)
+    sop_model: Optional[SopModel] = "pdca"
     plan: Optional[str] = None
     result: Optional[str] = None
     learning: Optional[str] = None
@@ -135,6 +138,10 @@ class ActivityAnalysisOut(BaseModel):
     summary: str
     pdca: dict
     stow: dict
+    scaq: dict
+    smart_goal: dict
+    communication_models: dict
+    debate_prompts: List[str]
     next_actions: List[str]
     thought_inputs: List[str]
 
