@@ -20,6 +20,7 @@ PostgreSQL database
 ```
 
 Docker Compose runs the backend locally and injects configuration from `.env`.
+The backend can also join an external `radicale_default` Docker network so it can talk to a local Radicale container directly at `http://radicale:5232/`, without going through Nginx or Cloudflare.
 
 ## Runtime Components
 
@@ -33,6 +34,7 @@ Key files:
 - `backend/app/schemas.py` defines Pydantic request and response schemas.
 - `backend/app/routers/` contains route handlers by domain.
 - `backend/app/static/` contains a simple browser UI for local testing.
+- `backend/app/services/caldav_tasks.py` contains the minimal CalDAV VTODO adapter used by the tasks API when CalDAV is configured.
 
 ### Database
 
@@ -105,6 +107,8 @@ Recurring tasks are stored as metadata first: frequency, solar/lunar calendar, o
 The `not_todo_group` field groups not-to-dos into legal, morality, company, family, and health boundaries.
 The `priority` field uses four values: `ultra`, `high`, `medium`, and `low`.
 The `recurrence_cron`, `recurrence_prepare_days`, `advanced_format`, and `advanced_body` fields are retained for prototype compatibility, but the current product direction favors simple structured recurrence fields and no advanced rule input in the UI.
+
+When `CALDAV_URL`, `CALDAV_USERNAME`, and `CALDAV_PASSWORD` are set, normal To-Dos are read from and written to CalDAV VTODO items. Not-to-Dos remain local database records because they are Aide-specific boundaries rather than standard tasks.
 
 ### `calendar_events`
 

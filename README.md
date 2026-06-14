@@ -7,6 +7,7 @@ The project is currently an early backend-first prototype. It exposes a FastAPI 
 ## Current Capabilities
 
 - Daily briefing endpoint
+- CalDAV-backed To-Do read/create/edit/complete when configured
 - Task and not-to-do capture
 - Task editing
 - Task completion
@@ -75,9 +76,13 @@ Docker Compose loads environment variables from `.env`:
 
 ```env
 DATABASE_URL=postgresql://user:password@host.docker.internal:5432/aide
+CALDAV_URL=http://radicale:5232/
+CALDAV_USERNAME=your-user
+CALDAV_PASSWORD=your-password
 ```
 
 Adjust the value to match the local or hosted PostgreSQL instance.
+When CalDAV variables are present, Aide stores normal To-Dos as VTODO items. Local database tasks remain as a fallback, while Not-to-Dos stay in the local database.
 
 ## Running Locally
 

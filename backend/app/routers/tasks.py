@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 from database import get_db
 from models import TaskDB
 from schemas import TaskCreate, TaskOut, TaskUpdate
+from services import caldav_tasks
 
 
 router = APIRouter()
@@ -94,11 +95,28 @@ def list_tasks(
     after = _completed_after(completed_range)
     if after:
         items = [item for item in items if (item.completed_at or item.created_at) >= after]
-    return items
+    if not caldav_tasks.is_enabled():
+        return items
+
+    caldav_items = caldav_tasks.list_tasks()
+    if done is not None:
+        caldav_items = [item for item in caldav_items if item["done"] is done]
+    if context:
+        caldav_items = [item for item in caldav_items if item["context"] == context]
+    if search:
+        caldav_items = [item for item in caldav_items if search.lower() in item["title"].lower()]
+    if after:
+        caldav_items = [item for item in caldav_items if (item["completed_at"] or item["created_at"]) >= after]
+    local_not_todos = [item for item in items if item.type == "not_todo"]
+    local_legacy_todos = [item for item in items if item.type != "not_todo" and item.source != "caldav"]
+    return [*caldav_items, *local_legacy_todos, *local_not_todos]
 
 
 @router.post("/tasks", response_model=TaskOut)
 def create_task(task: TaskCreate, db: Session = Depends(get_db)):
+    if caldav_tasks.is_enabled() and task.type != "not_todo":
+        effective_task = TaskCreate(**_effective_task_values(task.model_dump()))
+        return caldav_tasks.create_task(effective_task)
     item = TaskDB(**_effective_task_values(task.model_dump()))
     db.add(item)
     db.commit()
@@ -109,6 +127,11 @@ def create_task(task: TaskCreate, db: Session = Depends(get_db)):
 @router.post("/tasks/{task_id}/complete", response_model=TaskOut)
 def complete_task(task_id: int, db: Session = Depends(get_db)):
     item = db.query(TaskDB).filter(TaskDB.id == task_id).first()
+    if not item and caldav_tasks.is_enabled():
+        try:
+            return caldav_tasks.complete_task(task_id)
+        except caldav_tasks.CalDAVTaskNotFound:
+            pass
     if not item:
         raise HTTPException(status_code=404, detail="Task not found")
     if item.type == "not_todo":
@@ -123,9 +146,14 @@ def complete_task(task_id: int, db: Session = Depends(get_db)):
 @router.patch("/tasks/{task_id}", response_model=TaskOut)
 def update_task(task_id: int, task: TaskUpdate, db: Session = Depends(get_db)):
     item = db.query(TaskDB).filter(TaskDB.id == task_id).first()
+    values = task.model_dump(exclude_unset=True)
+    if not item and caldav_tasks.is_enabled():
+        try:
+            return caldav_tasks.update_task(task_id, values)
+        except caldav_tasks.CalDAVTaskNotFound:
+            pass
     if not item:
         raise HTTPException(status_code=404, detail="Task not found")
-    values = task.model_dump(exclude_unset=True)
     current_values = {
         "title": item.title,
         "description": item.description,
