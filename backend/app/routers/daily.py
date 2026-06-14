@@ -2,12 +2,14 @@ import json
 import re
 from calendar import monthrange
 from datetime import date, datetime, time, timedelta
+from types import SimpleNamespace
 
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from database import get_db
 from models import CalendarEventDB, TaskDB
+from services import caldav_tasks
 
 
 router = APIRouter()
@@ -204,6 +206,8 @@ def daily_briefing(db: Session = Depends(get_db)):
         .order_by(TaskDB.created_at.desc())
         .all()
     )
+    if caldav_tasks.is_enabled():
+        tasks.extend(SimpleNamespace(**task) for task in caldav_tasks.list_tasks() if not task["done"])
     tasks = [task for task in tasks if _should_show_today(task, today)][:5]
     meeting_items = (
         db.query(CalendarEventDB)

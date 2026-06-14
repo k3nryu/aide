@@ -8,6 +8,7 @@ Goal: make Aide useful for basic daily capture and review.
 
 - Keep the FastAPI backend running reliably through Docker Compose
 - Support task creation, listing, and completion
+- Support CalDAV VTODO as the To-Do storage backend when configured
 - Support not-to-dos as first-class task records
 - Support thought capture and review
 - Support activity/life log capture for things that happened outside the task list
@@ -31,6 +32,7 @@ Goal: make the backend easier to maintain before adding larger features.
 - Add filters for activity logs by date and category
 - Add filters for activity logs by SOP model, next action, and low-energy records
 - Decide whether authentication is needed for the local deployment model
+- Expand the CalDAV adapter to cover recurrence, calendar sync tokens, and conflict handling
 
 ## Phase 3: Frontend
 

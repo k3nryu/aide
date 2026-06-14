@@ -19,6 +19,7 @@ Implemented:
 - PostgreSQL-compatible database access
 - Docker Compose local backend service
 - Simple static browser UI
+- Optional CalDAV-backed To-Do storage through VTODO
 - Structured PDCA-friendly activity log fields
 - Small standard-library unit tests for AI-assist heuristics
 
