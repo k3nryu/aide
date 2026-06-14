@@ -155,8 +155,16 @@ Important fields:
 - `title`
 - `category`
 - `note`
+- `sop_model`
+- `plan`
+- `result`
+- `learning`
+- `next_action`
+- `energy_level`
 - `occurred_at`
 - `created_at`
+
+The structured fields are optional. A quick log can still be only a title, while a review-oriented log can capture a lightweight PDCA loop and one energy score for later trend analysis.
 
 ### `money_records`
 
@@ -199,6 +207,7 @@ Current routes:
 - `POST /money`
 
 AI-assist routes currently return reviewable drafts. The prototype uses local heuristic logic in `services/ai_assist.py`; future provider-backed AI should replace that service layer without changing the user confirmation flow.
+Activity analysis already consumes structured activity fields when present, while keeping the older title/category/note path as a fallback for historical records.
 
 ## Backend Layout
 

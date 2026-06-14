@@ -56,6 +56,12 @@ class ActivityLogDB(Base):
     title = Column(String(255), nullable=False)
     category = Column(String(100))
     note = Column(Text)
+    sop_model = Column(String(50), default="pdca")
+    plan = Column(Text)
+    result = Column(Text)
+    learning = Column(Text)
+    next_action = Column(Text)
+    energy_level = Column(Integer)
     occurred_at = Column(DateTime, default=datetime.utcnow)
     created_at = Column(DateTime, default=datetime.utcnow)
 

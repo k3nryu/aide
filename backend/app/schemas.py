@@ -104,6 +104,12 @@ class ActivityLogCreate(BaseModel):
     title: str = Field(..., min_length=1, max_length=255)
     category: Optional[str] = Field(default=None, max_length=100)
     note: Optional[str] = None
+    sop_model: Optional[str] = Field(default="pdca", max_length=50)
+    plan: Optional[str] = None
+    result: Optional[str] = None
+    learning: Optional[str] = None
+    next_action: Optional[str] = None
+    energy_level: Optional[int] = Field(default=None, ge=1, le=5)
     occurred_at: Optional[datetime] = None
 
 
@@ -112,6 +118,12 @@ class ActivityLogOut(BaseModel):
     title: str
     category: Optional[str] = None
     note: Optional[str] = None
+    sop_model: Optional[str] = None
+    plan: Optional[str] = None
+    result: Optional[str] = None
+    learning: Optional[str] = None
+    next_action: Optional[str] = None
+    energy_level: Optional[int] = None
     occurred_at: datetime
     created_at: datetime
 
@@ -123,6 +135,7 @@ class ActivityAnalysisOut(BaseModel):
     summary: str
     pdca: dict
     stow: dict
+    next_actions: List[str]
     thought_inputs: List[str]
 
 
