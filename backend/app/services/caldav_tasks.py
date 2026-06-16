@@ -11,9 +11,6 @@ from urllib.parse import unquote, urljoin, urlparse
 from urllib.request import Request, urlopen
 from xml.etree import ElementTree
 
-from services.caldav_ical import recurrence_payload
-from services.caldav_task_schedule import sync_task_schedule_event
-
 
 DAV_NS = "DAV:"
 CALDAV_NS = "urn:ietf:params:xml:ns:caldav"
@@ -81,14 +78,11 @@ def create_task(task):
         aide_type="todo",
         aide_id=metadata["id"],
         metadata=metadata,
-        recurrence=recurrence_payload(metadata),
     )
     href = f"{uid}.ics"
     item_url = urljoin(collection_url, href)
     _request("PUT", item_url, ics, {"Content-Type": "text/calendar; charset=utf-8"})
-    item = _task_from_vtodo(item_url, ics)
-    sync_task_schedule_event(item)
-    return item
+    return _task_from_vtodo(item_url, ics)
 
 
 def update_task(task_id: int, values: Dict):
@@ -119,12 +113,9 @@ def update_task(task_id: int, values: Dict):
         aide_type="todo",
         aide_id=metadata["id"],
         metadata=metadata,
-        recurrence=recurrence_payload(metadata),
     )
     _request("PUT", urljoin(_base_url(), item.href), ics, {"Content-Type": "text/calendar; charset=utf-8"})
-    updated = _task_from_vtodo(item.href, ics)
-    sync_task_schedule_event(updated)
-    return updated
+    return _task_from_vtodo(item.href, ics)
 
 
 def complete_task(task_id: int):
@@ -146,12 +137,9 @@ def complete_task(task_id: int):
         aide_type="todo",
         aide_id=metadata["id"],
         metadata=metadata,
-        recurrence=recurrence_payload(metadata),
     )
     _request("PUT", urljoin(_base_url(), item.href), ics, {"Content-Type": "text/calendar; charset=utf-8"})
-    updated = _task_from_vtodo(item.href, ics)
-    sync_task_schedule_event(updated)
-    return updated
+    return _task_from_vtodo(item.href, ics)
 
 
 def _settings():
@@ -377,10 +365,8 @@ def _unfold_ical_lines(ics):
     return lines
 
 
-def _build_vtodo(uid, summary, description, due_date, start_date, created_at, completed_at, done, categories=None, aide_type="todo", aide_id=None, metadata=None, recurrence=None):
+def _build_vtodo(uid, summary, description, due_date, start_date, created_at, completed_at, done, categories=None, aide_type="todo", aide_id=None, metadata=None):
     now = datetime.utcnow()
-    if not start_date and recurrence:
-        start_date = _parse_stored_date((metadata or {}).get("available_date")) or (created_at.date() if isinstance(created_at, datetime) else None)
     lines = [
         "BEGIN:VCALENDAR",
         "VERSION:2.0",
@@ -406,10 +392,6 @@ def _build_vtodo(uid, summary, description, due_date, start_date, created_at, co
         lines.append(f"X-AIDE-METADATA:{_escape_ical_text(json.dumps(metadata, ensure_ascii=False, default=str))}")
     if start_date:
         lines.append(f"DTSTART;VALUE=DATE:{_format_ical_date(start_date)}")
-    if recurrence:
-        rule = _recurrence_rrule(recurrence)
-        if rule:
-            lines.append(f"RRULE:{rule}")
     if due_date:
         lines.append(f"DUE;VALUE=DATE:{_format_ical_date(due_date)}")
     if done:
@@ -555,89 +537,3 @@ def _parse_stored_datetime(value):
 def _parse_stored_date(value):
     parsed = _parse_stored_datetime(value)
     return parsed.date() if parsed else None
-
-
-def _recurrence_rrule(recurrence):
-    if not recurrence:
-        return None
-    frequency = str(recurrence.get("frequency") or "").upper()
-    if frequency not in {"DAILY", "WEEKLY", "MONTHLY", "YEARLY"}:
-        return None
-
-    parts = [f"FREQ={frequency}"]
-    interval = recurrence.get("interval")
-    if interval not in (None, "", 1, "1"):
-        parts.append(f"INTERVAL={int(interval)}")
-
-    weekdays = _weekday_codes(recurrence.get("weekdays") or recurrence.get("nth_weekday"))
-    month = _safe_int(recurrence.get("month"))
-    day = _safe_int(recurrence.get("day"))
-    nth = _safe_int(recurrence.get("nth"))
-    until = _parse_stored_datetime(recurrence.get("end_date"))
-
-    if frequency == "WEEKLY" and weekdays:
-        parts.append(f"BYDAY={','.join(weekdays)}")
-    if frequency == "MONTHLY":
-        if day:
-            parts.append(f"BYMONTHDAY={day}")
-        elif weekdays and nth:
-            parts.append(f"BYDAY={','.join(weekdays)}")
-            parts.append(f"BYSETPOS={nth}")
-    if frequency == "YEARLY":
-        if month:
-            parts.append(f"BYMONTH={month}")
-        if day:
-            parts.append(f"BYMONTHDAY={day}")
-        elif weekdays and nth:
-            parts.append(f"BYDAY={','.join(weekdays)}")
-            parts.append(f"BYSETPOS={nth}")
-
-    if until:
-        parts.append(f"UNTIL={_format_ical_datetime(until)}")
-    return ";".join(parts)
-
-
-def _weekday_codes(value):
-    if not value:
-        return []
-    source = value if isinstance(value, list) else str(value)
-    mapping = {
-        "0": "SU",
-        "1": "MO",
-        "2": "TU",
-        "3": "WE",
-        "4": "TH",
-        "5": "FR",
-        "6": "SA",
-        "周日": "SU",
-        "星期日": "SU",
-        "礼拜日": "SU",
-        "周天": "SU",
-        "星期天": "SU",
-        "礼拜天": "SU",
-        "周一": "MO",
-        "星期一": "MO",
-        "礼拜一": "MO",
-        "周二": "TU",
-        "星期二": "TU",
-        "礼拜二": "TU",
-        "周三": "WE",
-        "星期三": "WE",
-        "礼拜三": "WE",
-        "周四": "TH",
-        "星期四": "TH",
-        "礼拜四": "TH",
-        "周五": "FR",
-        "星期五": "FR",
-        "礼拜五": "FR",
-        "周六": "SA",
-        "星期六": "SA",
-        "礼拜六": "SA",
-    }
-    tokens = source if isinstance(source, list) else [token for token in str(source).replace("、", ",").split(",") if token]
-    values = []
-    for token in tokens:
-        code = mapping.get(str(token).strip())
-        if code and code not in values:
-            values.append(code)
-    return values

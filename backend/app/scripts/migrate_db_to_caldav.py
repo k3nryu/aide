@@ -13,10 +13,8 @@ from services.caldav_ical import (
     build_vtodo,
     compact_summary,
     description_from_sections,
-    recurrence_payload,
 )
 from services.caldav_store import list_component_uids, list_calendar_collections, put_calendar_object
-from services.caldav_task_schedule import sync_task_schedule_event
 
 
 def main():
@@ -99,12 +97,10 @@ def main():
                 aide_type="todo",
                 aide_id=item.id,
                 metadata=serialize_task(item),
-                recurrence=recurrence_payload(serialize_task(item)),
             ),
             existing,
             results,
         )
-        sync_task_schedule_event(serialize_task(item) | {"advanced_body": todo_uid})
         if item.done:
             outcome_uid = uid_for("task-outcome", item.id)
             upsert(
@@ -153,7 +149,6 @@ def main():
                 aide_type="calendar_event",
                 aide_id=item.id,
                 metadata=serialize_event(item),
-                recurrence=recurrence_payload(serialize_event(item)),
             ),
             existing,
             results,

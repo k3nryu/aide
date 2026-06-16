@@ -3,7 +3,7 @@ import zlib
 from datetime import date, datetime, time, timedelta
 
 from services import caldav_tasks
-from services.caldav_ical import build_vevent, build_vjournal, compact_summary, description_from_sections, recurrence_payload
+from services.caldav_ical import build_vevent, build_vjournal, compact_summary, description_from_sections
 from services.caldav_store import list_calendar_objects, put_calendar_object
 
 
@@ -211,8 +211,6 @@ def list_calendar_events(event_date=None, account_context=None, all_events=False
     outcomes_by_event_id, outcomes_by_uid = _event_outcomes()
     items = []
     for obj in list_calendar_objects("VEVENT"):
-        if obj.props.get("X-AIDE-TYPE") == "task_schedule":
-            continue
         item = _calendar_event_from_object(obj)
         outcome = outcomes_by_event_id.get(item["id"]) or outcomes_by_uid.get(obj.uid)
         if outcome:
@@ -253,7 +251,6 @@ def create_calendar_event(values):
         aide_type="calendar_event",
         aide_id=item_id,
         metadata=metadata,
-        recurrence=recurrence_payload(metadata),
     )
     put_calendar_object("VEVENT", uid, ics)
     return _calendar_event_from_metadata(metadata)
@@ -280,7 +277,6 @@ def update_calendar_event(event_id: int, values):
         aide_type="calendar_event",
         aide_id=event_id,
         metadata=metadata,
-        recurrence=recurrence_payload(metadata),
     )
     put_calendar_object("VEVENT", obj.uid, ics)
     return _calendar_event_from_metadata(metadata)
