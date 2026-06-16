@@ -1,58 +1,13 @@
-from datetime import date, datetime, timedelta
+from datetime import datetime, timedelta
 from typing import List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
+from fastapi import APIRouter, HTTPException
 
-from database import get_db
-from models import TaskDB
-from schemas import TaskCreate, TaskOut, TaskUpdate
+from schemas import TaskOut
 from services import caldav_aide, caldav_tasks
 
 
 router = APIRouter()
-
-
-def _effective_task_values(values):
-    recurrence = (
-        values.get("todo_kind") == "recurring"
-        or values.get("recurrence_frequency")
-        or values.get("recurrence_natural")
-    )
-    importance = values.get("importance") or "medium"
-    urgency = values.get("urgency") or "medium"
-    due_date = values.get("due_date")
-    available_date = values.get("available_date")
-
-    if recurrence and importance == "medium":
-        importance = "high"
-
-    if due_date and urgency != "high":
-        if due_date <= date.today() + timedelta(days=3):
-            urgency = "high"
-    if available_date and available_date <= date.today() and not due_date and urgency == "low":
-        urgency = "medium"
-
-    if importance == "high" and urgency != "high":
-        priority = "ultra"
-    elif importance == "high" and urgency == "high":
-        priority = "high"
-    elif urgency == "high":
-        priority = "medium"
-    elif importance == "low" and urgency == "low":
-        priority = "low"
-    else:
-        priority = "medium"
-
-    effective_values = values.copy()
-    if effective_values.get("type") == "not_todo":
-        effective_values["todo_kind"] = None
-        effective_values["done"] = False
-        effective_values["completed_at"] = None
-    effective_values["importance"] = importance
-    effective_values["urgency"] = urgency
-    effective_values["priority"] = priority
-    return effective_values
 
 
 def _completed_after(range_name: Optional[str]):
@@ -78,142 +33,38 @@ def list_tasks(
     context: Optional[str] = None,
     search: Optional[str] = None,
     completed_range: Optional[str] = None,
-    db: Session = Depends(get_db),
 ):
+    if not caldav_tasks.is_enabled():
+        raise HTTPException(status_code=503, detail="CalDAV storage is not configured")
+
     after = _completed_after(completed_range)
-    if caldav_tasks.is_enabled():
-        caldav_items = caldav_tasks.list_tasks()
-        not_todos = caldav_aide.list_not_todos()
-        items = [*caldav_items, *not_todos]
-        if done is not None:
-            items = [item for item in items if item["done"] is done]
-        if context:
-            items = [item for item in items if item["context"] == context]
-        if search:
-            items = [item for item in items if search.lower() in item["title"].lower()]
-        if after:
-            items = [item for item in items if (item["completed_at"] or item["created_at"]) >= after]
-        if done is True:
-            return sorted(items, key=lambda item: (item["completed_at"] or item["created_at"]), reverse=True)
-        return sorted(items, key=lambda item: item["created_at"], reverse=True)
-
-    if db is None:
-        raise HTTPException(status_code=503, detail="No storage backend configured")
-
-    query = db.query(TaskDB)
+    caldav_items = caldav_tasks.list_tasks()
+    not_todos = caldav_aide.list_not_todos()
+    items = [*caldav_items, *not_todos]
     if done is not None:
-        query = query.filter(TaskDB.done == done)
+        items = [item for item in items if item["done"] is done]
     if context:
-        query = query.filter(TaskDB.context == context)
+        items = [item for item in items if item["context"] == context]
     if search:
-        query = query.filter(TaskDB.title.ilike(f"%{search}%"))
-    if done is True:
-        query = query.order_by(TaskDB.completed_at.desc().nullslast(), TaskDB.created_at.desc())
-    else:
-        query = query.order_by(TaskDB.created_at.desc())
-    items = query.all()
+        items = [item for item in items if search.lower() in item["title"].lower()]
     if after:
-        items = [item for item in items if (item.completed_at or item.created_at) >= after]
-    return items
-
-
-@router.post("/tasks", response_model=TaskOut)
-def create_task(task: TaskCreate, db: Session = Depends(get_db)):
-    if caldav_tasks.is_enabled():
-        effective_values = _effective_task_values(task.model_dump())
-        if task.type == "not_todo":
-            return caldav_aide.create_not_todo(effective_values)
-        effective_task = TaskCreate(**effective_values)
-        return caldav_tasks.create_task(effective_task)
-    if db is None:
-        raise HTTPException(status_code=503, detail="No storage backend configured")
-    item = TaskDB(**_effective_task_values(task.model_dump()))
-    db.add(item)
-    db.commit()
-    db.refresh(item)
-    return item
+        items = [item for item in items if (item["completed_at"] or item["created_at"]) >= after]
+    if done is True:
+        return sorted(items, key=lambda item: (item["completed_at"] or item["created_at"]), reverse=True)
+    return sorted(items, key=lambda item: item["created_at"], reverse=True)
 
 
 @router.post("/tasks/{task_id}/complete", response_model=TaskOut)
-def complete_task(task_id: int, db: Session = Depends(get_db)):
-    if caldav_tasks.is_enabled():
-        not_todo_ids = {item["id"] for item in caldav_aide.list_not_todos()}
-        if task_id in not_todo_ids:
-            raise HTTPException(status_code=400, detail="Not-to-do items cannot be completed")
-        try:
-            item = caldav_tasks.complete_task(task_id)
-            caldav_aide.upsert_task_outcome(item)
-            return item
-        except caldav_tasks.CalDAVTaskNotFound:
-            raise HTTPException(status_code=404, detail="Task not found")
+def complete_task(task_id: int):
+    if not caldav_tasks.is_enabled():
+        raise HTTPException(status_code=503, detail="CalDAV storage is not configured")
 
-    if db is None:
-        raise HTTPException(status_code=503, detail="No storage backend configured")
-    item = db.query(TaskDB).filter(TaskDB.id == task_id).first()
-    if not item:
-        raise HTTPException(status_code=404, detail="Task not found")
-    if item.type == "not_todo":
+    not_todo_ids = {item["id"] for item in caldav_aide.list_not_todos()}
+    if task_id in not_todo_ids:
         raise HTTPException(status_code=400, detail="Not-to-do items cannot be completed")
-    item.done = True
-    item.completed_at = datetime.utcnow()
-    db.commit()
-    db.refresh(item)
-    return item
-
-
-@router.patch("/tasks/{task_id}", response_model=TaskOut)
-def update_task(task_id: int, task: TaskUpdate, db: Session = Depends(get_db)):
-    values = task.model_dump(exclude_unset=True)
-    if caldav_tasks.is_enabled():
-        try:
-            if any(item["id"] == task_id for item in caldav_aide.list_not_todos()):
-                return caldav_aide.update_not_todo(task_id, values)
-            return caldav_tasks.update_task(task_id, values)
-        except caldav_aide.CalDAVJournalNotFound:
-            raise HTTPException(status_code=404, detail="Task not found")
-        except caldav_tasks.CalDAVTaskNotFound:
-            raise HTTPException(status_code=404, detail="Task not found")
-
-    if db is None:
-        raise HTTPException(status_code=503, detail="No storage backend configured")
-    item = db.query(TaskDB).filter(TaskDB.id == task_id).first()
-    if not item:
+    try:
+        item = caldav_tasks.complete_task(task_id)
+        caldav_aide.upsert_task_outcome(item)
+        return item
+    except caldav_tasks.CalDAVTaskNotFound:
         raise HTTPException(status_code=404, detail="Task not found")
-    current_values = {
-        "title": item.title,
-        "description": item.description,
-        "type": item.type,
-        "priority": item.priority,
-        "importance": item.importance,
-        "urgency": item.urgency,
-        "context": item.context,
-        "todo_kind": item.todo_kind,
-        "recurrence_frequency": item.recurrence_frequency,
-        "recurrence_calendar": item.recurrence_calendar,
-        "recurrence_month": item.recurrence_month,
-        "recurrence_day": item.recurrence_day,
-        "recurrence_weekdays": item.recurrence_weekdays,
-        "recurrence_rule": item.recurrence_rule,
-        "not_todo_group": item.not_todo_group,
-        "recurrence_natural": item.recurrence_natural,
-        "recurrence_cron": item.recurrence_cron,
-        "recurrence_prepare_days": item.recurrence_prepare_days,
-        "advanced_format": item.advanced_format,
-        "advanced_body": item.advanced_body,
-        "due_date": item.due_date,
-        "available_date": item.available_date,
-        "starts_at": item.starts_at,
-        "ends_at": item.ends_at,
-        "location": item.location,
-        "source": item.source,
-    }
-    effective_values = _effective_task_values({**current_values, **values})
-    for key in set(values) | {"priority", "importance", "urgency"}:
-        value = effective_values[key]
-        setattr(item, key, value)
-    if item.type == "not_todo":
-        item.done = False
-        item.completed_at = None
-    db.commit()
-    db.refresh(item)
-    return item

@@ -19,7 +19,7 @@ It should become a trusted place to answer:
 
 ### Capture First
 
-It should be easy to quickly capture a task, not-to-do, thought, expense, or reminder without deciding where it belongs immediately.
+It should be easy to quickly capture thoughts, actions taken, reflections, money notes, and outcomes without deciding where everything belongs immediately. Tasks and calendar items should be maintained in the user's CalDAV/task/calendar tools, then read by Aide.
 
 ### Briefings Over Dashboards
 
@@ -55,11 +55,11 @@ Aide should connect to other services when they already solve a job well. Calend
 
 ### Daily Briefing
 
-A daily view that surfaces today's tasks, relevant not-to-dos, recent thoughts, and useful summaries.
+A daily view that surfaces today's CalDAV tasks, calendar events, relevant not-to-dos, recent thoughts, and useful summaries.
 
 ### Tasks
 
-Task management should distinguish To-Do from Not-to-Do. To-Dos can be one-time or recurring, while Not-to-Dos represent ongoing boundaries and should not have a completion state. Aide should keep capture simple, then evaluate priority from importance, urgency, due dates, recurrence, and context.
+Aide should read To-Dos from CalDAV instead of becoming another task editor. To-Dos can be one-time or recurring, while Not-to-Dos represent ongoing boundaries and should not have a completion state. Aide should keep the daily list simple, then evaluate priority from importance, urgency, due dates, recurrence, and context.
 
 ### Not-To-Dos
 

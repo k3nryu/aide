@@ -7,9 +7,9 @@ This roadmap describes the likely build order for Aide. It should stay practical
 Goal: make Aide useful for basic daily capture and review.
 
 - Keep the FastAPI backend running reliably through Docker Compose
-- Support task creation, listing, and completion
-- Support CalDAV VTODO as the To-Do storage backend when configured
-- Support not-to-dos as first-class task records
+- Support CalDAV task listing and completion outcome capture
+- Use CalDAV VTODO as the To-Do source of truth
+- Support not-to-dos as CalDAV journal-backed boundary records
 - Support thought capture and review
 - Support activity/life log capture for things that happened outside the task list
 - Support structured activity logs for a lightweight PDCA loop
@@ -27,13 +27,13 @@ Goal: make the backend easier to maintain before adding larger features.
 - Split `backend/app/main.py` into focused modules
 - Add database migration support
 - Add a small test suite
-- Add stricter validation for task, thought, and money inputs
-- Add update/delete endpoints where useful
+- Add stricter validation for thought, activity, and money inputs
+- Add update/delete endpoints where useful outside task/calendar authoring
 - Add pagination or date filtering for growing lists
 - Add filters for activity logs by date and category
 - Add filters for activity logs by SOP model, next action, and low-energy records
 - Decide whether authentication is needed for the local deployment model
-- Expand the CalDAV adapter to cover recurrence, calendar sync tokens, and conflict handling
+- Expand the CalDAV adapter to cover recurrence reading, calendar sync tokens, and conflict handling
 
 ## Phase 3: Frontend
 
@@ -41,9 +41,9 @@ Goal: create the main user experience.
 
 - Build a web-first interface
 - Make the daily briefing the default screen
-- Add fast capture for tasks, not-to-dos, thoughts, and money records
+- Add fast capture for thoughts, activity logs, outcomes, and money records
 - Add mobile-friendly layouts
-- Add task completion and review workflows
+- Add CalDAV task completion/outcome and review workflows
 - Add simple finance views
 
 ## Phase 4: AI Assistance

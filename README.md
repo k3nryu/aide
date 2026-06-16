@@ -4,23 +4,19 @@ Aide is a personal executive assistant system for daily PDCA, task management, t
 
 The product goal is not to become a complex calendar app. Aide should help one person act, record what happened, check patterns, get practical suggestions, and keep looping toward personal growth, financial freedom, and life freedom. Scheduling should stay simple and connect to external calendar/CalDAV services where possible.
 
-The project is currently an early backend-first prototype. It exposes a FastAPI API backed by PostgreSQL-compatible SQLAlchemy models and runs locally through Docker Compose.
+The project is currently an early backend-first prototype. It exposes a FastAPI API, uses CalDAV as the primary runtime data store, and runs locally through Docker Compose. The old SQLAlchemy/PostgreSQL model remains only for prototype compatibility and migration tooling.
 
 ## Current Capabilities
 
 - Daily briefing endpoint
-- CalDAV-backed To-Do read/create/edit/complete when configured
-- Task and not-to-do capture
-- Task editing
-- Task completion
+- CalDAV-backed To-Do reading and completion/outcome capture
+- CalDAV-backed calendar event reading and attendance outcome capture
 - Company/personal task classification
 - One-time and recurring task metadata
 - Recurring task fields for daily, weekly, monthly, yearly, solar, and lunar patterns
-- Grouped not-to-dos for legal, morality, company, family, and health boundaries
-- Completed task lookup by time range or keyword
-- Calendar event capture for one-time and recurring personal/company meetings
+- Grouped not-to-dos read from CalDAV VJOURNAL records
 - Thought capture with optional tags
-- Thought-to-task suggestion drafts with user confirmation
+- Thought-to-action suggestion drafts for manual review
 - Activity/life log capture for things that happened outside the task list
 - Structured activity logs with optional PDCA/SOP fields: plan, result, check/learning, next action, and energy level
 - Activity review draft with PDCA, STOW, SCAQ, SMART, AIDA, 5W2H, and debate prompts
@@ -72,19 +68,20 @@ The backend is implemented under `backend/app`.
 
 ## Configuration
 
-The backend requires a `DATABASE_URL` environment variable.
+The backend requires CalDAV variables for the main runtime workflow. `DATABASE_URL` is optional and should only be kept when you need legacy prototype tables or migration tooling.
 
 Docker Compose loads environment variables from `.env`:
 
 ```env
-DATABASE_URL=postgresql://user:password@host.docker.internal:5432/aide
 CALDAV_URL=http://radicale:5232/
 CALDAV_USERNAME=your-user
 CALDAV_PASSWORD=your-password
+CALDAV_COLLECTION=/your-user/main-calendar/
+# Optional legacy database:
+# DATABASE_URL=postgresql://user:password@host.docker.internal:5432/aide
 ```
 
-Adjust the value to match the local or hosted PostgreSQL instance.
-When CalDAV variables are present, Aide stores normal To-Dos as VTODO items. Local database tasks remain as a fallback, while Not-to-Dos stay in the local database.
+When CalDAV variables are present, Aide reads To-Dos from VTODO, reads meetings/events from VEVENT, and stores Aide logs such as thoughts, activity logs, money notes, not-to-dos, and outcomes as VJOURNAL records. Tasks and meetings should be created and edited in the CalDAV client or upstream service, not inside Aide.
 
 ## Running Locally
 
@@ -123,16 +120,13 @@ http://127.0.0.1:8000/app/
 - `GET /` - health/status
 - `GET /daily/briefing` - today's briefing
 - `GET /tasks` - list tasks, optionally filtered by completion, context, completion range, or search
-- `POST /tasks` - create a task or not-to-do
-- `PATCH /tasks/{task_id}` - update a task
-- `POST /tasks/{task_id}/complete` - complete a task
+- `POST /tasks/{task_id}/complete` - complete a CalDAV task and write an outcome journal
 - `GET /calendar/sources` - list planned/available calendar sources
 - `GET /calendar/events` - list calendar events for a date
-- `POST /calendar/events` - create or import a calendar event
-- `PATCH /calendar/events/{event_id}` - update a calendar event
+- `POST /calendar/events/{event_id}/complete` - write a calendar attendance outcome journal
 - `GET /thoughts` - list thoughts
 - `POST /thoughts` - create a thought
-- `POST /thoughts/{thought_id}/task-suggestions` - draft task suggestions from a thought
+- `POST /thoughts/{thought_id}/task-suggestions` - draft action suggestions from a thought
 - `GET /activity-logs` - list activity/life logs
 - `POST /activity-logs` - create an activity/life log
 - `GET /activity-logs/analysis` - draft PDCA/STOW analysis from completed tasks and activity logs

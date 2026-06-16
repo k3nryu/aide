@@ -16,10 +16,12 @@ Implemented:
 
 - FastAPI backend
 - SQLAlchemy ORM models
-- PostgreSQL-compatible database access
+- Optional PostgreSQL-compatible legacy database access
 - Docker Compose local backend service
 - Simple static browser UI
-- Optional CalDAV-backed To-Do storage through VTODO
+- CalDAV-backed To-Do reading through VTODO
+- CalDAV-backed calendar event reading through VEVENT
+- Aide-specific records and outcomes through VJOURNAL
 - Structured PDCA-friendly activity log fields
 - Small standard-library unit tests for AI-assist heuristics
 
@@ -34,6 +36,7 @@ Not implemented yet:
 
 - Keep APIs simple, explicit, and resource-oriented.
 - Avoid overengineering; use the smallest structure that fits the current feature.
+- Do not reintroduce local task or meeting authoring unless the user explicitly reverses the CalDAV-first direction.
 - Keep changes small and aligned with the prototype.
 - Validate user input at the Pydantic schema boundary.
 - Add external services only when the roadmap or user request calls for them.

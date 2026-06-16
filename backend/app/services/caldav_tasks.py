@@ -2,7 +2,6 @@ import base64
 import json
 import os
 import re
-import uuid
 import zlib
 from dataclasses import dataclass
 from datetime import date, datetime
@@ -60,64 +59,6 @@ def list_tasks():
     return [item.task for item in _items_from_multistatus(payload.decode("utf-8", errors="replace"))]
 
 
-def create_task(task):
-    collection_url = _task_collection_url()
-    uid = f"{uuid.uuid4()}@aide"
-    now = datetime.utcnow()
-    metadata = _task_metadata(task.model_dump() if hasattr(task, "model_dump") else dict(task), created_at=now)
-    ics = _build_vtodo(
-        uid=uid,
-        summary=task.title,
-        description=task.description,
-        due_date=task.due_date,
-        start_date=task.available_date,
-        created_at=now,
-        completed_at=None,
-        done=False,
-        categories=["AIDE", "TODO", _tag(metadata.get("context")), _tag(metadata.get("todo_kind"))],
-        aide_type="todo",
-        aide_id=metadata["id"],
-        metadata=metadata,
-    )
-    href = f"{uid}.ics"
-    item_url = urljoin(collection_url, href)
-    _request("PUT", item_url, ics, {"Content-Type": "text/calendar; charset=utf-8"})
-    return _task_from_vtodo(item_url, ics)
-
-
-def update_task(task_id: int, values: Dict):
-    item = _find_item(task_id)
-    props = _parse_vtodo(item.ics)
-    current_metadata = _parse_json(props.get("X-AIDE-METADATA"))
-    summary = values.get("title") or props.get("SUMMARY") or item.task["title"]
-    description = values.get("description", props.get("DESCRIPTION"))
-    due_date = values.get("due_date")
-    if due_date is None:
-        due_date = _parse_ical_date(props.get("DUE"))
-    start_date = values.get("available_date")
-    if start_date is None:
-        start_date = _parse_ical_date(props.get("DTSTART"))
-    completed_at = _parse_ical_datetime(props.get("COMPLETED"))
-    done = values.get("done", item.task["done"])
-    metadata = _task_metadata({**current_metadata, **values, "title": summary, "description": description, "due_date": due_date, "available_date": start_date, "done": done, "completed_at": completed_at or current_metadata.get("completed_at")}, created_at=_parse_ical_datetime(props.get("CREATED")) or item.task["created_at"], item_id=current_metadata.get("id") or item.task["id"])
-    ics = _build_vtodo(
-        uid=props.get("UID") or item.task["advanced_body"],
-        summary=summary,
-        description=description,
-        due_date=due_date,
-        start_date=start_date,
-        created_at=_parse_ical_datetime(props.get("CREATED")) or item.task["created_at"],
-        completed_at=completed_at,
-        done=done,
-        categories=["AIDE", "TODO", _tag(metadata.get("context")), _tag(metadata.get("todo_kind"))],
-        aide_type="todo",
-        aide_id=metadata["id"],
-        metadata=metadata,
-    )
-    _request("PUT", urljoin(_base_url(), item.href), ics, {"Content-Type": "text/calendar; charset=utf-8"})
-    return _task_from_vtodo(item.href, ics)
-
-
 def complete_task(task_id: int):
     item = _find_item(task_id)
     props = _parse_vtodo(item.ics)
@@ -152,7 +93,7 @@ def _settings():
         "url": url.rstrip("/") + "/",
         "username": username,
         "password": password,
-        "collection": os.getenv("CALDAV_TASK_COLLECTION"),
+        "collection": os.getenv("CALDAV_TASK_COLLECTION") or os.getenv("CALDAV_COLLECTION"),
     }
 
 

@@ -1,6 +1,6 @@
 # Architecture
 
-Aide is currently a backend-first FastAPI application with a PostgreSQL-compatible relational database.
+Aide is currently a backend-first FastAPI application with CalDAV as the primary runtime data store. The old PostgreSQL-compatible SQLAlchemy model remains for prototype compatibility and one-time migration work, but it is no longer the intended source of truth.
 
 The repository is intentionally small. The backend is split by responsibility into app setup, database configuration, ORM models, Pydantic schemas, and routers.
 
@@ -13,10 +13,10 @@ Client / Browser / API caller
 FastAPI backend
         |
         v
-SQLAlchemy ORM
+CalDAV services
         |
         v
-PostgreSQL database
+VTODO / VEVENT / VJOURNAL collections
 ```
 
 Docker Compose runs the backend locally and injects configuration from `.env`.
@@ -34,11 +34,21 @@ Key files:
 - `backend/app/schemas.py` defines Pydantic request and response schemas.
 - `backend/app/routers/` contains route handlers by domain.
 - `backend/app/static/` contains a simple browser UI for local testing.
-- `backend/app/services/caldav_tasks.py` contains the minimal CalDAV VTODO adapter used by the tasks API when CalDAV is configured.
+- `backend/app/services/caldav_tasks.py` contains the minimal CalDAV VTODO adapter used by the tasks API.
+- `backend/app/services/caldav_aide.py` maps Aide journals, outcomes, not-to-dos, and calendar events to CalDAV components.
+- `backend/app/services/caldav_store.py` contains the low-level CalDAV component read/write helpers.
 
-### Database
+### CalDAV Storage
 
-The backend expects `DATABASE_URL` to point at a PostgreSQL-compatible database.
+Aide reads tasks from CalDAV `VTODO` components and meetings from `VEVENT` components. Aide-specific records such as thoughts, activity logs, money notes, not-to-dos, task outcomes, and meeting outcomes are stored as `VJOURNAL` components with `X-AIDE-TYPE` and JSON metadata.
+
+Tasks and meetings are intentionally not created or edited inside Aide anymore. They should be maintained in a CalDAV task/calendar client or upstream SaaS, then read by Aide for daily briefing and review.
+
+Set `CALDAV_COLLECTION` when the CalDAV account has more than one collection. Component-specific overrides are also supported with `CALDAV_TASK_COLLECTION`, `CALDAV_EVENT_COLLECTION`, and `CALDAV_JOURNAL_COLLECTION`.
+
+### Legacy Database
+
+`DATABASE_URL` is optional. If present, the SQLAlchemy models can still create the old prototype tables, mainly to support migration and historical compatibility.
 
 Tables are created automatically at startup with:
 
@@ -46,7 +56,7 @@ Tables are created automatically at startup with:
 Base.metadata.create_all(bind=engine)
 ```
 
-This is acceptable for the early prototype. A migration system such as Alembic should be introduced before schema changes become frequent or production data matters.
+This is acceptable only for the legacy prototype layer. New runtime storage should go through CalDAV unless the product direction changes.
 
 ### Docker Compose
 
@@ -62,9 +72,9 @@ The compose service:
 
 ## Data Model
 
-### `tasks`
+### Legacy `tasks`
 
-Stores todos and not-todos.
+Historical table for todos and not-todos. It is not the runtime task source anymore.
 
 Important fields:
 
@@ -102,17 +112,16 @@ The `type` field currently distinguishes `todo` from `not_todo`.
 The `context` field currently distinguishes `personal` from `company`.
 The `todo_kind` field distinguishes one-time todos from recurring todos.
 The `available_date` field represents the earliest date a one-time task can realistically be acted on, while `due_date` represents the latest completion date.
-The `starts_at`, `ends_at`, `location`, and `source` fields let meeting-like scheduled work live directly on tasks instead of requiring a separate meeting entry in the task UI.
 Recurring tasks are stored as metadata first: frequency, solar/lunar calendar, optional month/day/weekday fields, optional natural-language notes, and `recurrence_rule` JSON for richer interval/range/exclusion details. Actual future instance generation is still a later service-layer concern.
 The `not_todo_group` field groups not-to-dos into legal, morality, company, family, and health boundaries.
 The `priority` field uses four values: `ultra`, `high`, `medium`, and `low`.
 The `recurrence_cron`, `recurrence_prepare_days`, `advanced_format`, and `advanced_body` fields are retained for prototype compatibility, but the current product direction favors simple structured recurrence fields and no advanced rule input in the UI.
 
-When `CALDAV_URL`, `CALDAV_USERNAME`, and `CALDAV_PASSWORD` are set, normal To-Dos are read from and written to CalDAV VTODO items. Not-to-Dos remain local database records because they are Aide-specific boundaries rather than standard tasks.
+At runtime, normal To-Dos are read from CalDAV VTODO items. Not-to-dos are read from CalDAV VJOURNAL records so they do not need a local table.
 
-### `calendar_events`
+### Legacy `calendar_events`
 
-Stores meetings imported from or aligned with calendars.
+Historical table for meetings imported from or aligned with calendars. It is not the runtime calendar source anymore.
 
 Important fields:
 
@@ -137,8 +146,7 @@ Important fields:
 - `completed_at`
 - `created_at`
 
-The current prototype supports the shared event model and manual/API ingestion. Recurring meetings use the legacy recurrence summary fields plus `recurrence_rule` JSON for Outlook-style details such as interval, date range, excluded business-day sets, and time duration. Real Google, Apple, and Outlook account sync still needs provider-specific authentication and sync jobs.
-The `done` and `completed_at` fields archive a meeting series or meeting item when the user marks it as finished from the task list; archived meetings are excluded from active calendar/task views.
+At runtime, meetings are read from CalDAV VEVENT items. Completion/attendance is written as a VJOURNAL outcome rather than creating or editing local meeting records.
 
 ### `thoughts`
 
@@ -193,13 +201,9 @@ Current routes:
 - `GET /`
 - `GET /daily/briefing`
 - `GET /tasks`
-- `POST /tasks`
-- `PATCH /tasks/{task_id}`
 - `POST /tasks/{task_id}/complete`
 - `GET /calendar/sources`
 - `GET /calendar/events`
-- `POST /calendar/events`
-- `PATCH /calendar/events/{event_id}`
 - `POST /calendar/events/{event_id}/complete`
 - `GET /thoughts`
 - `POST /thoughts`
@@ -230,7 +234,11 @@ backend/app/
 │   ├── tasks.py
 │   └── thoughts.py
 ├── services/
-│   └── ai_assist.py
+│   ├── ai_assist.py
+│   ├── caldav_aide.py
+│   ├── caldav_ical.py
+│   ├── caldav_store.py
+│   └── caldav_tasks.py
 ```
 
 Future business logic that grows beyond simple route handlers should move into `services/`.
