@@ -5,15 +5,15 @@ from sqlalchemy.orm import declarative_base, sessionmaker
 
 
 DATABASE_URL = os.getenv("DATABASE_URL")
-if not DATABASE_URL:
-    raise RuntimeError("DATABASE_URL is not set")
-
-engine = create_engine(DATABASE_URL)
-SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
+engine = create_engine(DATABASE_URL) if DATABASE_URL else None
+SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False) if engine else None
 Base = declarative_base()
 
 
 def get_db():
+    if SessionLocal is None:
+        yield None
+        return
     db = SessionLocal()
     try:
         yield db

@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 from database import get_db
 from models import CalendarEventDB
 from schemas import CalendarEventCreate, CalendarEventOut, CalendarEventUpdate
+from services import caldav_aide
 
 
 router = APIRouter()
@@ -31,6 +32,14 @@ def list_calendar_events(
     all_events: bool = False,
     db: Session = Depends(get_db),
 ):
+    if caldav_aide.is_enabled():
+        return caldav_aide.list_calendar_events(
+            event_date=event_date,
+            account_context=account_context,
+            all_events=all_events,
+        )
+    if db is None:
+        raise HTTPException(status_code=503, detail="No storage backend configured")
     query = db.query(CalendarEventDB)
     if not all_events:
         query = query.filter((CalendarEventDB.done == False) | (CalendarEventDB.done == None))
@@ -45,6 +54,10 @@ def list_calendar_events(
 
 @router.post("/calendar/events", response_model=CalendarEventOut)
 def create_calendar_event(event: CalendarEventCreate, db: Session = Depends(get_db)):
+    if caldav_aide.is_enabled():
+        return caldav_aide.create_calendar_event(event.model_dump())
+    if db is None:
+        raise HTTPException(status_code=503, detail="No storage backend configured")
     item = CalendarEventDB(**event.model_dump())
     db.add(item)
     db.commit()
@@ -54,6 +67,13 @@ def create_calendar_event(event: CalendarEventCreate, db: Session = Depends(get_
 
 @router.post("/calendar/events/{event_id}/complete", response_model=CalendarEventOut)
 def complete_calendar_event(event_id: int, db: Session = Depends(get_db)):
+    if caldav_aide.is_enabled():
+        try:
+            return caldav_aide.complete_calendar_event(event_id)
+        except caldav_aide.CalDAVEventNotFound:
+            raise HTTPException(status_code=404, detail="Calendar event not found")
+    if db is None:
+        raise HTTPException(status_code=503, detail="No storage backend configured")
     item = db.query(CalendarEventDB).filter(CalendarEventDB.id == event_id).first()
     if not item:
         raise HTTPException(status_code=404, detail="Calendar event not found")
@@ -66,6 +86,13 @@ def complete_calendar_event(event_id: int, db: Session = Depends(get_db)):
 
 @router.patch("/calendar/events/{event_id}", response_model=CalendarEventOut)
 def update_calendar_event(event_id: int, event: CalendarEventUpdate, db: Session = Depends(get_db)):
+    if caldav_aide.is_enabled():
+        try:
+            return caldav_aide.update_calendar_event(event_id, event.model_dump(exclude_unset=True))
+        except caldav_aide.CalDAVEventNotFound:
+            raise HTTPException(status_code=404, detail="Calendar event not found")
+    if db is None:
+        raise HTTPException(status_code=503, detail="No storage backend configured")
     item = db.query(CalendarEventDB).filter(CalendarEventDB.id == event_id).first()
     if not item:
         raise HTTPException(status_code=404, detail="Calendar event not found")

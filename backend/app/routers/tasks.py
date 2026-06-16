@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 from database import get_db
 from models import TaskDB
 from schemas import TaskCreate, TaskOut, TaskUpdate
-from services import caldav_tasks
+from services import caldav_aide, caldav_tasks
 
 
 router = APIRouter()
@@ -80,6 +80,26 @@ def list_tasks(
     completed_range: Optional[str] = None,
     db: Session = Depends(get_db),
 ):
+    after = _completed_after(completed_range)
+    if caldav_tasks.is_enabled():
+        caldav_items = caldav_tasks.list_tasks()
+        not_todos = caldav_aide.list_not_todos()
+        items = [*caldav_items, *not_todos]
+        if done is not None:
+            items = [item for item in items if item["done"] is done]
+        if context:
+            items = [item for item in items if item["context"] == context]
+        if search:
+            items = [item for item in items if search.lower() in item["title"].lower()]
+        if after:
+            items = [item for item in items if (item["completed_at"] or item["created_at"]) >= after]
+        if done is True:
+            return sorted(items, key=lambda item: (item["completed_at"] or item["created_at"]), reverse=True)
+        return sorted(items, key=lambda item: item["created_at"], reverse=True)
+
+    if db is None:
+        raise HTTPException(status_code=503, detail="No storage backend configured")
+
     query = db.query(TaskDB)
     if done is not None:
         query = query.filter(TaskDB.done == done)
@@ -92,31 +112,21 @@ def list_tasks(
     else:
         query = query.order_by(TaskDB.created_at.desc())
     items = query.all()
-    after = _completed_after(completed_range)
     if after:
         items = [item for item in items if (item.completed_at or item.created_at) >= after]
-    if not caldav_tasks.is_enabled():
-        return items
-
-    caldav_items = caldav_tasks.list_tasks()
-    if done is not None:
-        caldav_items = [item for item in caldav_items if item["done"] is done]
-    if context:
-        caldav_items = [item for item in caldav_items if item["context"] == context]
-    if search:
-        caldav_items = [item for item in caldav_items if search.lower() in item["title"].lower()]
-    if after:
-        caldav_items = [item for item in caldav_items if (item["completed_at"] or item["created_at"]) >= after]
-    local_not_todos = [item for item in items if item.type == "not_todo"]
-    local_legacy_todos = [item for item in items if item.type != "not_todo" and item.source != "caldav"]
-    return [*caldav_items, *local_legacy_todos, *local_not_todos]
+    return items
 
 
 @router.post("/tasks", response_model=TaskOut)
 def create_task(task: TaskCreate, db: Session = Depends(get_db)):
-    if caldav_tasks.is_enabled() and task.type != "not_todo":
-        effective_task = TaskCreate(**_effective_task_values(task.model_dump()))
+    if caldav_tasks.is_enabled():
+        effective_values = _effective_task_values(task.model_dump())
+        if task.type == "not_todo":
+            return caldav_aide.create_not_todo(effective_values)
+        effective_task = TaskCreate(**effective_values)
         return caldav_tasks.create_task(effective_task)
+    if db is None:
+        raise HTTPException(status_code=503, detail="No storage backend configured")
     item = TaskDB(**_effective_task_values(task.model_dump()))
     db.add(item)
     db.commit()
@@ -126,12 +136,20 @@ def create_task(task: TaskCreate, db: Session = Depends(get_db)):
 
 @router.post("/tasks/{task_id}/complete", response_model=TaskOut)
 def complete_task(task_id: int, db: Session = Depends(get_db)):
-    item = db.query(TaskDB).filter(TaskDB.id == task_id).first()
-    if not item and caldav_tasks.is_enabled():
+    if caldav_tasks.is_enabled():
+        not_todo_ids = {item["id"] for item in caldav_aide.list_not_todos()}
+        if task_id in not_todo_ids:
+            raise HTTPException(status_code=400, detail="Not-to-do items cannot be completed")
         try:
-            return caldav_tasks.complete_task(task_id)
+            item = caldav_tasks.complete_task(task_id)
+            caldav_aide.upsert_task_outcome(item)
+            return item
         except caldav_tasks.CalDAVTaskNotFound:
-            pass
+            raise HTTPException(status_code=404, detail="Task not found")
+
+    if db is None:
+        raise HTTPException(status_code=503, detail="No storage backend configured")
+    item = db.query(TaskDB).filter(TaskDB.id == task_id).first()
     if not item:
         raise HTTPException(status_code=404, detail="Task not found")
     if item.type == "not_todo":
@@ -145,13 +163,20 @@ def complete_task(task_id: int, db: Session = Depends(get_db)):
 
 @router.patch("/tasks/{task_id}", response_model=TaskOut)
 def update_task(task_id: int, task: TaskUpdate, db: Session = Depends(get_db)):
-    item = db.query(TaskDB).filter(TaskDB.id == task_id).first()
     values = task.model_dump(exclude_unset=True)
-    if not item and caldav_tasks.is_enabled():
+    if caldav_tasks.is_enabled():
         try:
+            if any(item["id"] == task_id for item in caldav_aide.list_not_todos()):
+                return caldav_aide.update_not_todo(task_id, values)
             return caldav_tasks.update_task(task_id, values)
+        except caldav_aide.CalDAVJournalNotFound:
+            raise HTTPException(status_code=404, detail="Task not found")
         except caldav_tasks.CalDAVTaskNotFound:
-            pass
+            raise HTTPException(status_code=404, detail="Task not found")
+
+    if db is None:
+        raise HTTPException(status_code=503, detail="No storage backend configured")
+    item = db.query(TaskDB).filter(TaskDB.id == task_id).first()
     if not item:
         raise HTTPException(status_code=404, detail="Task not found")
     current_values = {
