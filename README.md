@@ -1,6 +1,8 @@
 # Aide
 
-Aide is a personal executive assistant system for daily planning, task management, thought capture, lightweight finance tracking, and eventually AI-assisted memory.
+Aide is a personal executive assistant system for daily PDCA, task management, thought capture, lightweight finance tracking, and eventually AI-assisted memory.
+
+The product goal is not to become a complex calendar app. Aide should help one person act, record what happened, check patterns, get practical suggestions, and keep looping toward personal growth, financial freedom, and life freedom. Scheduling should stay simple and connect to external calendar/CalDAV services where possible.
 
 The project is currently an early backend-first prototype. It exposes a FastAPI API backed by PostgreSQL-compatible SQLAlchemy models and runs locally through Docker Compose.
 
@@ -21,7 +23,7 @@ The project is currently an early backend-first prototype. It exposes a FastAPI 
 - Thought-to-task suggestion drafts with user confirmation
 - Activity/life log capture for things that happened outside the task list
 - Structured activity logs with optional PDCA/SOP fields: plan, result, check/learning, next action, and energy level
-- Activity review draft with PDCA and STOW analysis
+- Activity review draft with PDCA, STOW, SCAQ, SMART, AIDA, 5W2H, and debate prompts
 - Money record capture for income and expenses
 - Financial independence dashboard with FI assets, fixed expense items, passive income, and safe withdrawal rate
 - Simple browser UI for quick local testing

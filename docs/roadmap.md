@@ -13,6 +13,7 @@ Goal: make Aide useful for basic daily capture and review.
 - Support thought capture and review
 - Support activity/life log capture for things that happened outside the task list
 - Support structured activity logs for a lightweight PDCA loop
+- Support SOP-shaped review drafts for PDCA, STOW, SCAQ, SMART, AIDA, 5W2H, and debate prompts
 - Support daily briefing
 - Support lightweight money records
 - Add basic README and project docs
@@ -53,7 +54,8 @@ Goal: add AI where it improves daily use.
 - Summarize recent thoughts
 - Suggest follow-up tasks from thoughts
 - Identify stale tasks or recurring themes
-- Debate with the user from recent thoughts, actions, and PDCA records
+- Debate with the user from recent thoughts, actions, PDCA records, money patterns, and long-term freedom goals
+- Generate concise SCAQ reports and SMART goal drafts from recent behavior
 - Keep AI output reviewable and editable
 
 ## Phase 5: Personal Memory and RAG

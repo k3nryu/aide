@@ -966,6 +966,7 @@
                       <option value="smart">SMART</option>
                       <option value="aida">AIDA</option>
                       <option value="5w2h">5W2H</option>
+                      <option value="freeform">自由记录</option>
                     </select>
                   </label>
                   <label>
@@ -1014,7 +1015,7 @@
 
         <section>
           <h2>AI 复盘</h2>
-          <button class="secondary" id="activity-analysis-button" type="button">生成 PDCA / STOW 分析</button>
+          <button class="secondary" id="activity-analysis-button" type="button">生成 PDCA / SOP 复盘</button>
           <div class="status" id="activity-analysis-status"></div>
           <div class="items" id="activity-analysis"></div>
         </section>
@@ -2270,6 +2271,11 @@
       function renderActivityAnalysis(data) {
         const pdca = data.pdca || {};
         const stow = data.stow || {};
+        const scaq = data.scaq || {};
+        const smartGoal = data.smart_goal || {};
+        const communicationModels = data.communication_models || {};
+        const aida = communicationModels.aida || {};
+        const fiveWTwoH = communicationModels.five_w_two_h || {};
         activityAnalysis.innerHTML = `
           <div class="item">
             <div class="meta">${escapeHtml(data.summary || "Aide 生成了复盘草稿")}</div>
@@ -2300,9 +2306,57 @@
               </div>
             </div>
           </details>
+          <details class="item" open>
+            <summary class="summary-row">
+              <span class="item-title">SCAQ 汇报</span>
+            </summary>
+            <div class="detail-body">
+              <div class="report-grid">
+                ${reportLine("Situation", scaq.situation)}
+                ${reportLine("Complication", scaq.complication)}
+                ${reportLine("Ask", scaq.ask)}
+                ${reportLine("Answer", scaq.answer)}
+              </div>
+            </div>
+          </details>
+          <details class="item" open>
+            <summary class="summary-row">
+              <span class="item-title">SMART 小目标</span>
+            </summary>
+            <div class="detail-body">
+              <div class="report-grid">
+                ${reportLine("Specific", smartGoal.specific)}
+                ${reportLine("Measurable", smartGoal.measurable)}
+                ${reportLine("Achievable", smartGoal.achievable)}
+                ${reportLine("Relevant", smartGoal.relevant)}
+                ${reportLine("Time-bound", smartGoal.time_bound)}
+              </div>
+            </div>
+          </details>
+          <details class="item">
+            <summary class="summary-row">
+              <span class="item-title">AIDA / 5W2H</span>
+            </summary>
+            <div class="detail-body">
+              <div class="report-grid">
+                ${reportLine("Attention", aida.attention)}
+                ${reportLine("Interest", aida.interest)}
+                ${reportLine("Desire", aida.desire)}
+                ${reportLine("Action", aida.action)}
+                ${reportLine("What", fiveWTwoH.what)}
+                ${reportLine("Why", fiveWTwoH.why)}
+                ${reportLine("When", fiveWTwoH.when)}
+                ${reportLine("How", fiveWTwoH.how)}
+              </div>
+            </div>
+          </details>
           <div class="item">
             <div class="item-title">下一步</div>
             ${(data.next_actions || []).map((item) => `<div class="meta">${escapeHtml(item)}</div>`).join("")}
+          </div>
+          <div class="item">
+            <div class="item-title">辩论问题</div>
+            ${(data.debate_prompts || []).map((item) => `<div class="meta">${escapeHtml(item)}</div>`).join("")}
           </div>
           <div class="item">
             <div class="item-title">给想法的数据</div>
