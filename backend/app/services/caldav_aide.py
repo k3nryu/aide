@@ -3,7 +3,7 @@ import zlib
 from datetime import date, datetime, time, timedelta
 
 from services import caldav_tasks
-from services.caldav_ical import build_vevent, build_vjournal, compact_summary, description_from_sections
+from services.caldav_ical import build_vjournal, compact_summary, description_from_sections
 from services.caldav_store import list_calendar_objects, put_calendar_object
 
 
@@ -159,54 +159,6 @@ def list_not_todos():
     return sorted(items, key=lambda item: item["created_at"], reverse=True)
 
 
-def create_not_todo(values):
-    created_at = datetime.utcnow()
-    uid = _new_uid("not-todo")
-    item_id = _journal_id(uid)
-    metadata = _build_not_todo_metadata(item_id, created_at, values)
-    ics = build_vjournal(
-        uid=uid,
-        summary=compact_summary("Not-to-do: ", values["title"]),
-        occurred_at=created_at,
-        created_at=created_at,
-        description=description_from_sections(
-            ("Title", values["title"]),
-            ("Description", values.get("description")),
-            ("Group", values.get("not_todo_group")),
-            ("Context", values.get("context")),
-        ),
-        categories=["AIDE", "NOT_TODO", _tag(values.get("context")), _tag(values.get("not_todo_group"))],
-        aide_type="not_todo",
-        aide_id=item_id,
-        metadata=metadata,
-    )
-    put_calendar_object("VJOURNAL", uid, ics)
-    return _not_todo_from_metadata(metadata)
-
-
-def update_not_todo(task_id: int, values):
-    obj = _find_journal_type("not_todo", task_id)
-    metadata = _build_not_todo_metadata(task_id, _metadata_datetime(obj.metadata, "created_at") or datetime.utcnow(), {**obj.metadata, **values})
-    ics = build_vjournal(
-        uid=obj.uid,
-        summary=compact_summary("Not-to-do: ", metadata["title"]),
-        occurred_at=_metadata_datetime(metadata, "created_at") or datetime.utcnow(),
-        created_at=_metadata_datetime(metadata, "created_at") or datetime.utcnow(),
-        description=description_from_sections(
-            ("Title", metadata["title"]),
-            ("Description", metadata.get("description")),
-            ("Group", metadata.get("not_todo_group")),
-            ("Context", metadata.get("context")),
-        ),
-        categories=["AIDE", "NOT_TODO", _tag(metadata.get("context")), _tag(metadata.get("not_todo_group"))],
-        aide_type="not_todo",
-        aide_id=task_id,
-        metadata=metadata,
-    )
-    put_calendar_object("VJOURNAL", obj.uid, ics)
-    return _not_todo_from_metadata(metadata)
-
-
 def list_calendar_events(event_date=None, account_context=None, all_events=False):
     outcomes_by_event_id, outcomes_by_uid = _event_outcomes()
     items = []
@@ -226,60 +178,6 @@ def list_calendar_events(event_date=None, account_context=None, all_events=False
                 continue
         items.append(item)
     return sorted(items, key=lambda item: item["starts_at"] or datetime.max)
-
-
-def create_calendar_event(values):
-    created_at = datetime.utcnow()
-    uid = _new_uid("event")
-    item_id = _event_id(uid)
-    metadata = _build_event_metadata(item_id, created_at, values)
-    ics = build_vevent(
-        uid=uid,
-        summary=metadata["title"],
-        starts_at=_metadata_datetime(metadata, "starts_at") or created_at,
-        ends_at=_metadata_datetime(metadata, "ends_at"),
-        created_at=created_at,
-        location=metadata.get("location"),
-        description=description_from_sections(
-            ("Description", metadata.get("description")),
-            ("Source", metadata.get("source")),
-            ("Context", metadata.get("account_context")),
-            ("Importance", metadata.get("importance")),
-            ("Recurrence", metadata.get("recurrence_natural") or metadata.get("recurrence_frequency")),
-        ),
-        categories=["AIDE", "EVENT", _tag(metadata.get("account_context")), _tag(metadata.get("source"))],
-        aide_type="calendar_event",
-        aide_id=item_id,
-        metadata=metadata,
-    )
-    put_calendar_object("VEVENT", uid, ics)
-    return _calendar_event_from_metadata(metadata)
-
-
-def update_calendar_event(event_id: int, values):
-    obj = _find_event(event_id)
-    metadata = _build_event_metadata(event_id, _metadata_datetime(obj.metadata, "created_at") or datetime.utcnow(), {**obj.metadata, **values})
-    ics = build_vevent(
-        uid=obj.uid,
-        summary=metadata["title"],
-        starts_at=_metadata_datetime(metadata, "starts_at") or datetime.utcnow(),
-        ends_at=_metadata_datetime(metadata, "ends_at"),
-        created_at=_metadata_datetime(metadata, "created_at") or datetime.utcnow(),
-        location=metadata.get("location"),
-        description=description_from_sections(
-            ("Description", metadata.get("description")),
-            ("Source", metadata.get("source")),
-            ("Context", metadata.get("account_context")),
-            ("Importance", metadata.get("importance")),
-            ("Recurrence", metadata.get("recurrence_natural") or metadata.get("recurrence_frequency")),
-        ),
-        categories=["AIDE", "EVENT", _tag(metadata.get("account_context")), _tag(metadata.get("source"))],
-        aide_type="calendar_event",
-        aide_id=event_id,
-        metadata=metadata,
-    )
-    put_calendar_object("VEVENT", obj.uid, ics)
-    return _calendar_event_from_metadata(metadata)
 
 
 def complete_calendar_event(event_id: int):
@@ -346,13 +244,6 @@ def upsert_task_outcome(task):
 
 def _list_journal_type(aide_type):
     return [obj for obj in list_calendar_objects("VJOURNAL") if obj.props.get("X-AIDE-TYPE") == aide_type]
-
-
-def _find_journal_type(aide_type, item_id):
-    for obj in _list_journal_type(aide_type):
-        if _metadata_int(obj.metadata, "id", default=_journal_id(obj.uid)) == item_id:
-            return obj
-    raise CalDAVJournalNotFound(f"{aide_type} not found")
 
 
 def _find_event(event_id):
@@ -499,47 +390,6 @@ def _calendar_event_from_metadata(metadata, props=None, uid=None):
     }
 
 
-def _build_not_todo_metadata(item_id, created_at, values):
-    return {
-        "id": item_id,
-        "title": values["title"],
-        "description": values.get("description"),
-        "type": "not_todo",
-        "priority": values.get("priority") or "medium",
-        "importance": values.get("importance") or "medium",
-        "urgency": values.get("urgency") or "medium",
-        "context": values.get("context") or "personal",
-        "not_todo_group": values.get("not_todo_group"),
-        "created_at": created_at.isoformat(),
-    }
-
-
-def _build_event_metadata(item_id, created_at, values):
-    return {
-        "id": item_id,
-        "title": values["title"],
-        "source": values.get("source") or "manual",
-        "account_context": values.get("account_context") or "personal",
-        "importance": values.get("importance") or "high",
-        "event_kind": values.get("event_kind") or "one_time",
-        "recurrence_frequency": values.get("recurrence_frequency"),
-        "recurrence_calendar": values.get("recurrence_calendar") or "solar",
-        "recurrence_month": values.get("recurrence_month"),
-        "recurrence_day": values.get("recurrence_day"),
-        "recurrence_weekdays": values.get("recurrence_weekdays"),
-        "recurrence_natural": values.get("recurrence_natural"),
-        "recurrence_rule": values.get("recurrence_rule"),
-        "starts_at": _datetime_value(values.get("starts_at")),
-        "ends_at": _datetime_value(values.get("ends_at")),
-        "location": values.get("location"),
-        "description": values.get("description"),
-        "external_id": values.get("external_id"),
-        "done": bool(values.get("done", False)),
-        "completed_at": _datetime_value(values.get("completed_at")),
-        "created_at": created_at.isoformat(),
-    }
-
-
 def _new_uid(kind):
     return f"aide-{kind}-{uuid.uuid4()}@aide.local"
 
@@ -599,11 +449,6 @@ def _parse_date(value):
         return value
     parsed = _parse_datetime(value)
     return parsed.date() if parsed else None
-
-
-def _datetime_value(value):
-    parsed = _parse_datetime(value)
-    return parsed.isoformat() if parsed else None
 
 
 def _tag(value):

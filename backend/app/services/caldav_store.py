@@ -94,6 +94,9 @@ def collection_url_for(component_name: str):
         explicit = os.getenv(env_name)
         if explicit:
             return urljoin(settings["url"], explicit.rstrip("/") + "/")
+    explicit = os.getenv("CALDAV_COLLECTION")
+    if explicit:
+        return urljoin(settings["url"], explicit.rstrip("/") + "/")
 
     for collection in list_calendar_collections():
         if component_name in collection.components:
