@@ -6,10 +6,13 @@ from database import Base, engine
 from routers import activity_logs, calendar, daily, money, tasks, thoughts
 
 
-Base.metadata.create_all(bind=engine)
+if engine is not None:
+    Base.metadata.create_all(bind=engine)
 
 
 def sync_prototype_schema():
+    if engine is None:
+        return
     inspector = inspect(engine)
     table_names = inspector.get_table_names()
     if "tasks" not in table_names:

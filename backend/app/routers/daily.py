@@ -4,12 +4,12 @@ from calendar import monthrange
 from datetime import date, datetime, time, timedelta
 from types import SimpleNamespace
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from database import get_db
 from models import CalendarEventDB, TaskDB
-from services import caldav_tasks
+from services import caldav_aide, caldav_tasks
 
 
 router = APIRouter()
@@ -199,22 +199,27 @@ def _apply_today_event_time(event: CalendarEventDB, today: date):
 @router.get("/daily/briefing")
 def daily_briefing(db: Session = Depends(get_db)):
     today = date.today()
-    tasks = (
-        db.query(TaskDB)
-        .filter(TaskDB.done == False)
-        .filter(TaskDB.type != "not_todo")
-        .order_by(TaskDB.created_at.desc())
-        .all()
-    )
     if caldav_tasks.is_enabled():
-        tasks.extend(SimpleNamespace(**task) for task in caldav_tasks.list_tasks() if not task["done"])
+        tasks = [SimpleNamespace(**task) for task in caldav_tasks.list_tasks() if not task["done"]]
+        meeting_items = [SimpleNamespace(**item) for item in caldav_aide.list_calendar_events(all_events=True)]
+    else:
+        if db is None:
+            raise HTTPException(status_code=503, detail="No storage backend configured")
+        tasks = (
+            db.query(TaskDB)
+            .filter(TaskDB.done == False)
+            .filter(TaskDB.type != "not_todo")
+            .order_by(TaskDB.created_at.desc())
+            .all()
+        )
+        meeting_items = (
+            db.query(CalendarEventDB)
+            .filter((CalendarEventDB.done == False) | (CalendarEventDB.done == None))
+            .order_by(CalendarEventDB.starts_at.asc())
+            .all()
+        )
+
     tasks = [task for task in tasks if _should_show_today(task, today)][:5]
-    meeting_items = (
-        db.query(CalendarEventDB)
-        .filter((CalendarEventDB.done == False) | (CalendarEventDB.done == None))
-        .order_by(CalendarEventDB.starts_at.asc())
-        .all()
-    )
     meetings = [_apply_today_event_time(event, today) for event in meeting_items if _event_occurs_today(event, today)][:8]
     return {
         "date": str(today),

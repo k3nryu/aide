@@ -1,3 +1,4 @@
+import json
 import os
 from dataclasses import dataclass
 from typing import List, Optional
@@ -20,6 +21,17 @@ class CalDAVCollection:
     href: str
     displayname: Optional[str]
     components: List[str]
+
+
+@dataclass
+class CalDAVObject:
+    href: str
+    uid: str
+    etag: Optional[str]
+    ics: str
+    component_name: str
+    props: dict
+    metadata: dict
 
 
 def list_calendar_collections():
@@ -109,18 +121,55 @@ def list_component_uids(component_name: str):
         body,
         {"Depth": "1", "Content-Type": "application/xml; charset=utf-8"},
     )
+    return [item.uid for item in list_calendar_objects(component_name, payload=payload)]
+
+
+def list_calendar_objects(component_name: str, payload=None):
+    component_name = component_name.upper()
+    if payload is None:
+        collection_url = collection_url_for(component_name)
+        body = f"""<?xml version="1.0" encoding="utf-8" ?>
+<C:calendar-query xmlns:D="DAV:" xmlns:C="urn:ietf:params:xml:ns:caldav">
+  <D:prop>
+    <D:getetag/>
+    <C:calendar-data/>
+  </D:prop>
+  <C:filter>
+    <C:comp-filter name="VCALENDAR">
+      <C:comp-filter name="{component_name}" />
+    </C:comp-filter>
+  </C:filter>
+</C:calendar-query>"""
+        _, _, payload = caldav_tasks._request(
+            "REPORT",
+            collection_url,
+            body,
+            {"Depth": "1", "Content-Type": "application/xml; charset=utf-8"},
+        )
+
     root = ElementTree.fromstring(payload)
-    uids = []
+    objects = []
     for response in root.findall(f"{{{DAV_NS}}}response"):
+        href = caldav_tasks._child_text(response, f"{{{DAV_NS}}}href")
         raw = caldav_tasks._child_text(response, f".//{{{CALDAV_NS}}}calendar-data")
-        if not raw:
+        if not href or not raw:
             continue
-        lines = _unfold_ical_lines(raw)
-        for line in lines:
-            if line.startswith("UID:"):
-                uids.append(line.split(":", 1)[1].strip())
-                break
-    return uids
+        props = parse_component_props(raw, component_name)
+        uid = props.get("UID")
+        if not uid:
+            continue
+        objects.append(
+            CalDAVObject(
+                href=href,
+                uid=uid,
+                etag=caldav_tasks._child_text(response, f".//{{{DAV_NS}}}getetag"),
+                ics=raw,
+                component_name=component_name,
+                props=props,
+                metadata=parse_metadata(props.get("X-AIDE-METADATA")),
+            )
+        )
+    return objects
 
 
 def put_calendar_object(component_name: str, uid: str, ics: str):
@@ -139,3 +188,45 @@ def _unfold_ical_lines(ics):
         elif raw_line:
             lines.append(raw_line)
     return lines
+
+
+def parse_component_props(ics, component_name):
+    component_name = component_name.upper()
+    lines = _unfold_ical_lines(ics)
+    in_component = False
+    props = {}
+    for line in lines:
+        if line == f"BEGIN:{component_name}":
+            in_component = True
+            continue
+        if line == f"END:{component_name}":
+            break
+        if not in_component or ":" not in line:
+            continue
+        name_part, value = line.split(":", 1)
+        name = name_part.split(";", 1)[0].upper()
+        props[name] = unescape_ical_text(value)
+    return props
+
+
+def parse_metadata(value):
+    if not value:
+        return {}
+    try:
+        parsed = json.loads(value)
+    except json.JSONDecodeError:
+        return {}
+    return parsed if isinstance(parsed, dict) else {}
+
+
+def unescape_ical_text(value):
+    result = value
+    for source, target in (
+        ("\\n", "\n"),
+        ("\\N", "\n"),
+        ("\\,", ","),
+        ("\\;", ";"),
+        ("\\\\", "\\"),
+    ):
+        result = result.replace(source, target)
+    return result
