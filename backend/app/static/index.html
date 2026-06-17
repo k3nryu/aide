@@ -22,18 +22,24 @@
         box-sizing: border-box;
       }
 
+      html {
+        background: var(--bg);
+        overscroll-behavior-y: none;
+      }
+
       body {
         margin: 0;
         background: var(--bg);
         color: var(--ink);
         font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
         line-height: 1.4;
+        overscroll-behavior-y: none;
       }
 
       main {
         width: min(920px, 100%);
         margin: 0 auto;
-        padding: 18px 14px calc(56px + env(safe-area-inset-bottom));
+        padding: 18px 14px 86px;
       }
 
       header {
@@ -88,12 +94,12 @@
       .bottom-nav {
         position: fixed;
         right: 10px;
-        bottom: 0;
+        bottom: 10px;
         left: 10px;
         z-index: 10;
         display: grid;
         grid-template-columns: repeat(4, 1fr);
-        border-radius: 10px 10px 0 0;
+        border-radius: 10px;
         box-shadow: 0 8px 22px rgba(29, 37, 34, 0.14);
       }
 
@@ -435,7 +441,7 @@
       @media (min-width: 760px) {
         main {
           padding-top: 28px;
-          padding-bottom: 28px;
+          padding-bottom: 64px;
         }
 
         .grid {
