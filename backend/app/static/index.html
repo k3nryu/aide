@@ -33,7 +33,7 @@
       main {
         width: min(920px, 100%);
         margin: 0 auto;
-        padding: 18px 14px 86px;
+        padding: 18px 14px calc(56px + env(safe-area-inset-bottom));
       }
 
       header {
@@ -88,12 +88,12 @@
       .bottom-nav {
         position: fixed;
         right: 10px;
-        bottom: 10px;
+        bottom: 0;
         left: 10px;
         z-index: 10;
         display: grid;
         grid-template-columns: repeat(4, 1fr);
-        border-radius: 10px;
+        border-radius: 10px 10px 0 0;
         box-shadow: 0 8px 22px rgba(29, 37, 34, 0.14);
       }
 
@@ -435,7 +435,7 @@
       @media (min-width: 760px) {
         main {
           padding-top: 28px;
-          padding-bottom: 64px;
+          padding-bottom: 28px;
         }
 
         .grid {
