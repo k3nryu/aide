@@ -24,32 +24,19 @@
 
       html {
         background: var(--bg);
-        height: 100%;
-        overflow: hidden;
-        overscroll-behavior-y: none;
       }
 
       body {
-        position: fixed;
-        inset: 0;
-        width: 100%;
-        height: 100%;
         margin: 0;
-        overflow: hidden;
         background: var(--bg);
         color: var(--ink);
         font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
         line-height: 1.4;
-        overscroll-behavior-y: none;
       }
 
       main {
         width: min(920px, 100%);
-        height: 100dvh;
         margin: 0 auto;
-        overflow-y: auto;
-        overscroll-behavior-y: none;
-        -webkit-overflow-scrolling: touch;
         padding: 18px 14px 86px;
       }
 
@@ -879,40 +866,32 @@
         today.textContent = "";
       }
 
-      const pageScroller = document.querySelector("main");
       let scrollTouchStartX = 0;
       let scrollTouchStartY = 0;
       let scrollTouchIgnored = false;
 
-      if (pageScroller) {
-        pageScroller.addEventListener("touchstart", (event) => {
-          if (event.touches.length !== 1) return;
-          const target = event.target;
-          scrollTouchIgnored = Boolean(target.closest && target.closest("input, textarea, select"));
-          scrollTouchStartX = event.touches[0].clientX;
-          scrollTouchStartY = event.touches[0].clientY;
-        }, { passive: true });
+      document.addEventListener("touchstart", (event) => {
+        if (event.touches.length !== 1) return;
+        const target = event.target;
+        scrollTouchIgnored = Boolean(target.closest && target.closest("input, textarea, select"));
+        scrollTouchStartX = event.touches[0].clientX;
+        scrollTouchStartY = event.touches[0].clientY;
+      }, { passive: true });
 
-        pageScroller.addEventListener("touchmove", (event) => {
-          if (scrollTouchIgnored || event.touches.length !== 1) return;
-          const touch = event.touches[0];
-          const deltaX = touch.clientX - scrollTouchStartX;
-          const deltaY = touch.clientY - scrollTouchStartY;
-          if (Math.abs(deltaY) <= Math.abs(deltaX)) return;
+      document.addEventListener("touchmove", (event) => {
+        if (scrollTouchIgnored || event.touches.length !== 1) return;
+        const touch = event.touches[0];
+        const deltaX = touch.clientX - scrollTouchStartX;
+        const deltaY = touch.clientY - scrollTouchStartY;
+        if (Math.abs(deltaY) <= Math.abs(deltaX)) return;
 
-          const maxScrollTop = pageScroller.scrollHeight - pageScroller.clientHeight;
-          if (maxScrollTop <= 0) {
-            if (event.cancelable) event.preventDefault();
-            return;
-          }
-
-          const atTop = pageScroller.scrollTop <= 0;
-          const atBottom = pageScroller.scrollTop + pageScroller.clientHeight >= pageScroller.scrollHeight - 1;
-          if ((atTop && deltaY > 0) || (atBottom && deltaY < 0)) {
-            if (event.cancelable) event.preventDefault();
-          }
-        }, { passive: false });
-      }
+        const scroller = document.scrollingElement || document.documentElement;
+        const maxScrollTop = scroller.scrollHeight - window.innerHeight;
+        const atBottom = maxScrollTop > 0 && window.scrollY >= maxScrollTop - 1;
+        if (atBottom && deltaY < 0 && event.cancelable) {
+          event.preventDefault();
+        }
+      }, { passive: false });
 
       document.addEventListener("click", (event) => {
         let target = event.target;
